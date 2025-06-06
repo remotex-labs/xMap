@@ -253,7 +253,7 @@ export class CodeHighlighter {
      * @since 1.0.0
      */
 
-    private addSegment(start: number, end: number, color: string, reset: string = Colors.reset) {
+    private addSegment(start: number, end: number, color: string, reset: string = Colors.reset): void {
         const key = `${ start }-${ end }`;
         this.segments.set(key, { start, end, color, reset });
     }
@@ -552,7 +552,7 @@ export class CodeHighlighter {
  * @since 1.0.0
  */
 
-export function highlightCode(code: string, schema: Partial<HighlightSchemeInterface> = {}) {
+export function highlightCode(code: string, schema: Partial<HighlightSchemeInterface> = {}): string {
     const sourceFile = ts.createSourceFile('temp.ts', code, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
     const codeHighlighter = new CodeHighlighter(sourceFile, code, Object.assign(defaultScheme, schema));
 

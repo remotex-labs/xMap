@@ -11,6 +11,10 @@ import type { MapType, SegmentInterface, SegmentOffsetInterface } from './interf
 import { MappingProvider } from './mapping.provider';
 import { Bias } from './interfaces/mapping-provider.interface';
 
+/**
+ * Tests
+ */
+
 describe('validateSegment', () => {
     let instance: MappingProvider;
 
@@ -232,9 +236,7 @@ describe('decodeMappingArray', () => {
     });
 
     test('should throw error for non-array frame', () => {
-        const encodedMap: MapType = [
-            { someKey: 'invalid frame' } as any
-        ];
+        const encodedMap: MapType = [ { someKey: 'invalid frame' } as any ];
 
         expect(() => {
             instance.decodeMappingArray(encodedMap, 0, 0);
@@ -252,11 +254,7 @@ describe('decodeMappingArray', () => {
             throw new Error('Invalid segment');
         });
 
-        const encodedMap: MapType = <any> [
-            [
-                { nameIndex: 1, sourceIndex: 2, generatedLine: 3 }
-            ]
-        ];
+        const encodedMap: MapType = <any> [[{ nameIndex: 1, sourceIndex: 2, generatedLine: 3 }]];
 
         expect(() => {
             instance.decodeMappingArray(encodedMap, 0, 0);
@@ -282,9 +280,7 @@ describe('encodeMappings', () => {
                 { generatedColumn: 4, sourceIndex: 5, generatedLine: 6 }
             ],
             null,
-            [
-                { generatedColumn: 7, sourceIndex: 8, generatedLine: 9 }
-            ]
+            [{ generatedColumn: 7, sourceIndex: 8, generatedLine: 9 }]
         ];
 
         jest.spyOn(instance, 'encodeSegment').mockImplementation((positionOffset, segment: any) => {
@@ -310,11 +306,7 @@ describe('encodeMappings', () => {
     });
 
     test('should handle single frame with single segment', () => {
-        const map: MapType = <any> [
-            [
-                { generatedColumn: 1, sourceIndex: 2, generatedLine: 3 }
-            ]
-        ];
+        const map: MapType = <any> [[{ generatedColumn: 1, sourceIndex: 2, generatedLine: 3 }]];
 
         jest.spyOn(instance, 'encodeSegment').mockImplementation((positionOffset, segment: any) => {
             return `encoded(${ segment.generatedColumn },${ segment.sourceIndex })`;
@@ -342,12 +334,8 @@ describe('encodeMappings', () => {
 
     test('should reset positionOffset.generatedColumn for each frame', () => {
         const map: MapType = <any> [
-            [
-                { generatedColumn: 1, sourceIndex: 2, generatedLine: 3 }
-            ],
-            [
-                { generatedColumn: 4, sourceIndex: 5, generatedLine: 6 }
-            ]
+            [{ generatedColumn: 1, sourceIndex: 2, generatedLine: 3 }],
+            [{ generatedColumn: 4, sourceIndex: 5, generatedLine: 6 }]
         ];
 
         const positionOffsets = { generatedColumn: 0 };

@@ -84,6 +84,17 @@ export class SourceService {
      * Creates a new SourceService instance.
      *
      * @param source - Source map data (SourceService, SourceMapInterface object, or JSON string)
+     * @throws Error - When a source map has an invalid format or missing required properties
+     *
+     * @since 1.0.0
+     */
+
+    constructor(source: SourceService);
+
+    /**
+     * Creates a new SourceService instance.
+     *
+     * @param source - Source map data (SourceService, SourceMapInterface object, or JSON string)
      * @param file - Optional file name for the generated bundle
      *
      * @throws Error - When a source map has an invalid format or missing required properties
@@ -91,7 +102,6 @@ export class SourceService {
      * @since 1.0.0
      */
 
-    constructor(source: SourceService);
     constructor(source: SourceMapInterface | string, file?: string | null);
     constructor(source: SourceService | SourceMapInterface | string, file: string | null = null) {
         if (typeof source === 'string') {
@@ -336,7 +346,7 @@ export class SourceService {
         }, options);
 
         const code = this.sourcesContent[position.sourceIndex].split('\n');
-        const endLine = Math.min( (position.line ?? 1) + settings.linesAfter, code.length);
+        const endLine = Math.min((position.line ?? 1) + settings.linesAfter, code.length);
         const startLine = Math.max((position.line ?? 1) - settings.linesBefore, 0);
         const relevantCode = code.slice(startLine, Math.min(endLine + 1, code.length)).join('\n');
 
