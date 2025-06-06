@@ -119,7 +119,7 @@ export default defineConfig([
 
             // TypeScript specific rules
             '@typescript-eslint/no-explicit-any': 'warn',
-            '@typescript-eslint/explicit-function-return-type': 'warn',
+            '@typescript-eslint/explicit-function-return-type': 'error',
             '@typescript-eslint/explicit-module-boundary-types': 'warn',
             '@typescript-eslint/consistent-type-imports': [ 'error', { prefer: 'type-imports' }],
 
@@ -130,12 +130,20 @@ export default defineConfig([
                 {
                     'selector': 'interface',
                     'format': [ 'PascalCase' ],
-                    'suffix': [ 'Interface' ]
+                    'suffix': [ 'Interface' ],
+                    'filter': {
+                        'regex': '^x[A-Z].*$',
+                        'match': false
+                    }
                 },
                 {
                     'selector': 'typeAlias',
                     'format': [ 'PascalCase' ],
-                    'suffix': [ 'Type' ]
+                    'suffix': [ 'Type' ],
+                    'filter': {
+                        'regex': '^x[A-Z].*$',
+                        'match': false
+                    }
                 },
                 {
                     'selector': 'enum',
@@ -197,7 +205,8 @@ export default defineConfig([
         files: [ '**/*.spec.ts' ],
         rules: {
             'no-undef': 'off',
-            '@typescript-eslint/no-explicit-any': 'off'
+            '@typescript-eslint/no-explicit-any': 'off',
+            '@typescript-eslint/explicit-function-return-type': 'off'
         }
     },
     {
