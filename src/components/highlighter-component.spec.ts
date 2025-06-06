@@ -1,7 +1,16 @@
+/**
+ * Import will remove at compile time
+ */
+
+import type { PositionWithCodeInterface } from '@services/interfaces/source-service.interface';
+
+/**
+ * Imports
+ */
+
 import * as ts from 'typescript';
 import { formatErrorCode } from '@components/formatter.component';
 import { CodeHighlighter, Colors, highlightCode } from '@components/highlighter.component';
-import type { PositionWithCodeInterface } from '@services/interfaces/source-service.interface';
 
 const schema = {
     enumColor: Colors.burntOrange,
@@ -22,6 +31,10 @@ const schema = {
     propertyAccessExpressionColor: Colors.lightYellow,
     expressionWithTypeArgumentsColor: Colors.lightOrange
 };
+
+/**
+ * Tests
+ */
 
 describe('highlightCode', () => {
     beforeEach(() => {

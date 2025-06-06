@@ -4,6 +4,10 @@
 
 import { formatCode } from '@components/formatter.component';
 
+/**
+ * Tests
+ */
+
 describe('formatCode', () => {
     test('should format code with default options', () => {
         const code = 'line1\nline2\nline3';
@@ -27,7 +31,7 @@ describe('formatCode', () => {
             startLine: 2,
             action: {
                 triggerLine: 4,
-                callback: (lineString: string, padding: number, line: number) => `* ${ line } | ${ lineString }`
+                callback: (lineString: string, padding: number, line: number): string => `* ${ line } | ${ lineString }`
             }
         };
         const result = formatCode(code, options);

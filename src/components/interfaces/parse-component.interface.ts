@@ -22,7 +22,7 @@
  * @since 3.0.0
  */
 
-export interface StackFrame {
+export interface StackFrameInterface {
     source: string;
     line?: number;
     column?: number;
@@ -43,13 +43,13 @@ export interface StackFrame {
 /**
  * Represents a fully parsed error stack trace with structured information
  *
- * @see StackFrame
+ * @see StackFrameInterface
  * @since 2.1.0
  */
 
-export interface ParsedStackTrace {
+export interface ParsedStackTraceInterface {
     name: string;               // Error name/type
     message: string;            // Error message
-    stack: StackFrame[];        // Parsed frames
+    stack: StackFrameInterface[];        // Parsed frames
     rawStack: string;           // Original stack trace string
 }

@@ -290,22 +290,22 @@ export class MappingProvider {
 
     private validateSegment(segment: SegmentInterface): void {
         if (!Number.isFinite(segment.line)) {
-            throw new Error(`Invalid segment: line must be a finite number, received ${segment.line}`);
+            throw new Error(`Invalid segment: line must be a finite number, received ${ segment.line }`);
         }
         if (!Number.isFinite(segment.column)) {
-            throw new Error(`Invalid segment: column must be a finite number, received ${segment.column}`);
+            throw new Error(`Invalid segment: column must be a finite number, received ${ segment.column }`);
         }
         if (segment.nameIndex !== null && !Number.isFinite(segment.nameIndex)) {
-            throw new Error(`Invalid segment: nameIndex must be a number or null, received ${segment.nameIndex}`);
+            throw new Error(`Invalid segment: nameIndex must be a number or null, received ${ segment.nameIndex }`);
         }
         if (!Number.isFinite(segment.sourceIndex)) {
-            throw new Error(`Invalid segment: sourceIndex must be a finite number, received ${segment.sourceIndex}`);
+            throw new Error(`Invalid segment: sourceIndex must be a finite number, received ${ segment.sourceIndex }`);
         }
         if (!Number.isFinite(segment.generatedLine)) {
-            throw new Error(`Invalid segment: generatedLine must be a finite number, received ${segment.generatedLine}`);
+            throw new Error(`Invalid segment: generatedLine must be a finite number, received ${ segment.generatedLine }`);
         }
         if (!Number.isFinite(segment.generatedColumn)) {
-            throw new Error(`Invalid segment: generatedColumn must be a finite number, received ${segment.generatedColumn}`);
+            throw new Error(`Invalid segment: generatedColumn must be a finite number, received ${ segment.generatedColumn }`);
         }
     }
 
@@ -336,7 +336,9 @@ export class MappingProvider {
      */
 
     private encodeSegment(segmentOffset: SegmentOffsetInterface, segmentObject: SegmentInterface): string {
-        const { line, column, generatedColumn, nameIndex, sourceIndex } = segmentObject;
+        const {
+            line, column, generatedColumn, nameIndex, sourceIndex
+        } = segmentObject;
         const adjustedLine = line - 1;
         const adjustedColumn = column - 1;
         const adjustedGeneratedColumn = generatedColumn - 1;
@@ -491,7 +493,7 @@ export class MappingProvider {
                 this.mapping.push(segmentsArray);
             });
         } catch (error) {
-            throw new Error(`Error decoding mappings at frame index ${frames.length}: ${(<Error>error).message}`);
+            throw new Error(`Error decoding mappings at frame index ${ frames.length }: ${ (<Error>error).message }`);
         }
     }
 
@@ -538,7 +540,7 @@ export class MappingProvider {
                 }
 
                 if (!Array.isArray(frame))
-                    throw new Error(`Invalid Mappings array format at frame index ${index}: expected an array, received ${typeof frame}.`);
+                    throw new Error(`Invalid Mappings array format at frame index ${ index }: expected an array, received ${ typeof frame }.`);
 
                 const segments: FrameType = frame.map(segment => {
                     this.validateSegment(segment);
@@ -555,7 +557,7 @@ export class MappingProvider {
             });
         } catch (error: unknown) {
             const errorMessage = (error instanceof Error) ? error.message : 'Unknown error';
-            throw new Error(`Error decoding mappings: ${errorMessage}`);
+            throw new Error(`Error decoding mappings: ${ errorMessage }`);
         }
     }
 }

@@ -8,7 +8,7 @@ export type * from '@components/interfaces/parse-component.interface';
  * Import will remove at compile time
  */
 
-import type { ParsedStackTrace, StackFrame } from '@components/interfaces/parse-component.interface';
+import type { ParsedStackTraceInterface, StackFrameInterface } from '@components/interfaces/parse-component.interface';
 
 /**
  * Regular expression patterns for different JavaScript engines' stack traces
@@ -120,15 +120,15 @@ export function normalizePath(filePath: string): string {
  * Creates a default stack frame object with initial values
  *
  * @param source - The original source line from the stack trace
- * @returns A new StackFrame object with default null values
+ * @returns A new StackFrameInterface object with default null values
  *
- * @see ParsedStackTrace
- * @see StackFrame
+ * @see ParsedStackTraceInterface
+ * @see StackFrameInterface
  *
  * @since 2.1.0
  */
 
-export function createDefaultFrame(source: string): StackFrame {
+export function createDefaultFrame(source: string): StackFrameInterface {
     return {
         source,
         eval: false,
@@ -159,10 +159,10 @@ export function safeParseInt(value: string | undefined | null): number | undefin
 }
 
 /**
- * Parses a V8 JavaScript engine stack trace line into a structured StackFrame object
+ * Parses a V8 JavaScript engine stack trace line into a structured StackFrameInterface object
  *
  * @param line - The stack trace line to parse
- * @returns A StackFrame object containing the parsed information
+ * @returns A StackFrameInterface object containing the parsed information
  *
  * @remarks
  * Handles both standard V8 stack frames and eval-generated stack frames which
@@ -179,13 +179,13 @@ export function safeParseInt(value: string | undefined | null): number | undefin
  *
  * @throws Error - If the line format doesn't match any known V8 pattern
  *
- * @see StackFrame
+ * @see StackFrameInterface
  * @see createDefaultFrame
  *
  * @since 2.1.0
  */
 
-export function parseV8StackLine(line: string): StackFrame {
+export function parseV8StackLine(line: string): StackFrameInterface {
     const frame = createDefaultFrame(line);
 
     // Common flags that apply to all formats
@@ -237,10 +237,10 @@ export function parseV8StackLine(line: string): StackFrame {
 }
 
 /**
- * Parses a SpiderMonkey JavaScript engine stack trace line into a structured StackFrame object
+ * Parses a SpiderMonkey JavaScript engine stack trace line into a structured StackFrameInterface object
  *
  * @param line - The stack trace line to parse
- * @returns A StackFrame object containing the parsed information
+ * @returns A StackFrameInterface object containing the parsed information
  *
  * @remarks
  * Handles both standard SpiderMonkey stack frames and eval/Function-generated stack frames
@@ -255,13 +255,13 @@ export function parseV8StackLine(line: string): StackFrame {
  * parseSpiderMonkeyStackLine("evalFn@/source.js line 5 > eval:1:5");
  * ```
  *
- * @see StackFrame
+ * @see StackFrameInterface
  * @see createDefaultFrame
  *
  * @since 2.1.0
  */
 
-export function parseSpiderMonkeyStackLine(line: string): StackFrame {
+export function parseSpiderMonkeyStackLine(line: string): StackFrameInterface {
     const frame = createDefaultFrame(line);
 
     // Check for eval/Function format
@@ -309,10 +309,10 @@ export function parseSpiderMonkeyStackLine(line: string): StackFrame {
 }
 
 /**
- * Parses a JavaScriptCore engine stack trace line into a structured StackFrame object
+ * Parses a JavaScriptCore engine stack trace line into a structured StackFrameInterface object
  *
  * @param line - The stack trace line to parse
- * @returns A StackFrame object containing the parsed information
+ * @returns A StackFrameInterface object containing the parsed information
  *
  * @remarks
  * Handles both standard JavaScriptCore stack frames and eval-generated stack frames.
@@ -327,13 +327,13 @@ export function parseSpiderMonkeyStackLine(line: string): StackFrame {
  * parseJavaScriptCoreStackLine("eval code@");
  * ```
  *
- * @see StackFrame
+ * @see StackFrameInterface
  * @see createDefaultFrame
  *
  * @since 2.1.0
  */
 
-export function parseJavaScriptCoreStackLine(line: string): StackFrame {
+export function parseJavaScriptCoreStackLine(line: string): StackFrameInterface {
     const frame = createDefaultFrame(line);
 
     // Standard JavaScriptCore format
@@ -366,7 +366,7 @@ export function parseJavaScriptCoreStackLine(line: string): StackFrame {
  *
  * @param line - The stack trace line to parse
  * @param engine - The JavaScript engine type that generated the stack trace
- * @returns A StackFrame object containing the parsed information
+ * @returns A StackFrameInterface object containing the parsed information
  *
  * @remarks
  * Delegates to the appropriate parsing function based on the JavaScript engine.
@@ -386,7 +386,7 @@ export function parseJavaScriptCoreStackLine(line: string): StackFrame {
  * @since 2.1.0
  */
 
-export function parseStackLine(line: string, engine: JSEngines): StackFrame {
+export function parseStackLine(line: string, engine: JSEngines): StackFrameInterface {
     switch (engine) {
         case JSEngines.SPIDERMONKEY:
             return parseSpiderMonkeyStackLine(line);
@@ -402,7 +402,7 @@ export function parseStackLine(line: string, engine: JSEngines): StackFrame {
  * Parses a complete error stack trace into a structured format
  *
  * @param error - Error object or error message string to parse
- * @returns A ParsedStackTrace object containing structured stack trace information
+ * @returns A ParsedStackTraceInterface object containing structured stack trace information
  *
  * @remarks
  * Automatically detects the JavaScript engine from the stack format.
@@ -417,19 +417,19 @@ export function parseStackLine(line: string, engine: JSEngines): StackFrame {
  *   const parsedStack = parseErrorStack(error);
  *   console.log(parsedStack.name); // "Error"
  *   console.log(parsedStack.message); // "Something went wrong"
- *   console.log(parsedStack.stack); // Array of StackFrame objects
+ *   console.log(parsedStack.stack); // Array of StackFrameInterface objects
  * }
  * ```
  *
- * @see ParsedStackTrace
- * @see StackFrame
+ * @see ParsedStackTraceInterface
+ * @see StackFrameInterface
  * @see parseStackLine
  * @see detectJSEngine
  *
  * @since 2.1.0
  */
 
-export function parseErrorStack(error: Error | string): ParsedStackTrace {
+export function parseErrorStack(error: Error | string): ParsedStackTraceInterface {
     const errorObj = typeof error === 'string' ? new Error(error) : error;
     const stack = errorObj.stack || '';
     const message = errorObj.message || '';

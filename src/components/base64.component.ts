@@ -123,7 +123,7 @@ export function decodeVLQ(data: string): number[] {
     for (let i = 0; i < data.length; i++) {
         const digit = base64Map[data[i]];
         if (digit === undefined) {
-            throw new Error(`Invalid Base64 character: ${data[i]}`);
+            throw new Error(`Invalid Base64 character: ${ data[i] }`);
         }
 
         const continuation = digit & CONTINUATION_BIT_POSITION; // Check if continuation bit is set

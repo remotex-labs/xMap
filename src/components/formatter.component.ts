@@ -47,7 +47,7 @@ export function formatCode(code: string, options: FormatCodeInterface = {}): str
 
     return lines.map((lineContent, index) => {
         const currentLineNumber = index + startLine + 1;
-        const prefix = `${ currentLineNumber} | `;
+        const prefix = `${ currentLineNumber } | `;
         const string = `${ prefix.padStart(padding) }${ lineContent }`;
 
         if (options.action && currentLineNumber === options.action.triggerLine) {

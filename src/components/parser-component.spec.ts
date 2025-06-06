@@ -976,7 +976,7 @@ describe('parseErrorStack', () => {
     describe('stack filtering behavior', () => {
         test('should filter out the error header line', () => {
             // Create an error with a typical stack
-            function createErrorWithKnownStack() {
+            function createErrorWithKnownStack(): Error {
                 const e = new Error('Known error');
                 e.stack = `Error: Known error
     at functionName (/path/to/file.js:10:15)
@@ -996,7 +996,7 @@ describe('parseErrorStack', () => {
 
         test('should filter empty lines', () => {
             // Create an error with empty lines in the stack
-            function createErrorWithEmptyLines() {
+            function createErrorWithEmptyLines(): Error {
                 const e = new Error('Empty lines');
                 e.stack = `Error: Empty lines
     at functionName (/path/to/file.js:10:15)
@@ -1020,7 +1020,7 @@ describe('parseErrorStack', () => {
     describe('integration with different engine formats', () => {
         test('should parse V8 format stack traces', () => {
             // Create a V8-format stack trace
-            function createV8Error() {
+            function createV8Error(): Error {
                 const e = new Error('V8 error');
                 e.stack = `Error: V8 error
     at Module._compile (internal/modules/cjs/loader.js:999:30)
@@ -1047,7 +1047,7 @@ describe('parseErrorStack', () => {
 
         test('should parse SpiderMonkey format stack traces', () => {
             // Create a SpiderMonkey-format stack trace
-            function createSpiderMonkeyError() {
+            function createSpiderMonkeyError(): Error {
                 const e = new Error('SpiderMonkey error');
                 e.stack = `Error Test\nhandleRequest@/path/to/server.js:12:34
 processRequest@/path/to/api.js:45:10
@@ -1074,7 +1074,7 @@ processRequest@/path/to/api.js:45:10
 
         test('should parse JavaScriptCore format stack traces', () => {
             // Create a JavaScriptCore-format stack trace
-            function createJavaScriptCoreError() {
+            function createJavaScriptCoreError(): Error {
                 const e = new Error('JavaScriptCore error');
                 e.stack = `Error test\nevaluateScript@[native code]
 global code@http://example.com/script.js:10:15
