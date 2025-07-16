@@ -96,7 +96,7 @@
         "eslint-plugin-perfectionist": "^4.14.0",
         "@swc/jest": "^0.2.38",
         "@types/jest": "^29.5.14",
-        "@types/node": "^22.15.30",
+        "@types/node": "^24.0.10",
         "@remotex-labs/xbuild": "^1.5.8"
     },
     "dependencies": {
