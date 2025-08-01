@@ -89,13 +89,13 @@
         "ci:build": "npm run build"
     },
     "devDependencies": {
-        "jest": "^29.7.0",
+        "jest": "^30.0.5",
         "eslint": "^9.28.0",
         "typescript-eslint": "^8.33.1",
         "eslint-plugin-tsdoc": "^0.4.0",
         "eslint-plugin-perfectionist": "^4.14.0",
         "@swc/jest": "^0.2.38",
-        "@types/jest": "^29.5.14",
+        "@types/jest": "^30.0.0",
         "@types/node": "^22.15.30",
         "@remotex-labs/xbuild": "^1.5.8"
     },
