@@ -17,7 +17,7 @@ describe('SourceService', () => {
         test('should validate the source map', () => {
             const invalidSourceMap: any = {}; // Invalid object
 
-            expect(() => new SourceService(invalidSourceMap)).toThrowError(
+            expect(() => new SourceService(invalidSourceMap)).toThrow(
                 'Missing required keys in SourceMap.'
             );
         });
