@@ -100,6 +100,7 @@
         "@remotex-labs/xbuild": "^1.6.0"
     },
     "dependencies": {
-        "typescript": "^5.9.2"
+        "typescript": "^5.9.2",
+        "@remotex-labs/xansi": "^1.1.1"
     }
 }
