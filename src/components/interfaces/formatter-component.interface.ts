@@ -1,4 +1,10 @@
 /**
+ * Import will remove at compile time
+ */
+
+import type { ColorFunctionType } from '@components/interfaces/highlighter-component.interface';
+
+/**
  * A callback function for formatting code lines
  *
  * @param lineString - The content of the line to be formatted
@@ -66,12 +72,5 @@ export interface AnsiOptionInterface {
      * @since 1.0.0
      */
 
-    color: string,
-
-    /**
-     * ANSI reset code to restore default styling after the error pointer
-     * @since 1.0.0
-     */
-
-    reset: string
+    color: ColorFunctionType,
 }
