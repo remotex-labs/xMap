@@ -1,52 +1,24 @@
 /**
- * Export interfaces
- */
-
-export type * from '@components/interfaces/highlighter-component.interface';
-
-/**
  * Import will remove at compile time
  */
 
-import type { HighlightSchemeInterface, HighlightNodeSegmentInterface } from '@components/interfaces/highlighter-component.interface';
+import type { ColorFunctionType } from '@components/interfaces/highlighter-component.interface';
+import type { HighlightSchemeInterface } from '@components/interfaces/highlighter-component.interface';
+import type { HighlightNodeSegmentInterface } from '@components/interfaces/highlighter-component.interface';
 
 /**
  * Imports
  */
 
-import * as ts from 'typescript';
+import ts from 'typescript';
 import { SyntaxKind } from 'typescript';
+import { xterm } from '@remotex-labs/xansi/xterm.component';
 
 /**
- * An enum containing ANSI escape sequences for various colors
- *
- * @remarks
- * This enum is primarily intended for terminal output and won't work directly in JavaScript for web development.
- * It defines color codes for various colors and a reset code to return to the default text color.
- *
- * @example
- * ```ts
- * console.log(`${Colors.red}This text will be red in the terminal.${Colors.reset}`);
- * ```
- *
- * @since 1.0.0
+ * Export interfaces
  */
 
-export const enum Colors {
-    reset = '\x1b[0m',
-    gray = '\x1b[38;5;243m',
-    darkGray = '\x1b[38;5;238m',
-    lightCoral = '\x1b[38;5;203m',
-    lightOrange = '\x1b[38;5;215m',
-    oliveGreen = '\x1b[38;5;149m',
-    burntOrange = '\x1b[38;5;208m',
-    lightGoldenrodYellow = '\x1b[38;5;221m',
-    lightYellow = '\x1b[38;5;230m',
-    canaryYellow = '\x1b[38;5;227m',
-    deepOrange = '\x1b[38;5;166m',
-    lightGray = '\x1b[38;5;252m',
-    brightPink = '\x1b[38;5;197m'
-}
+export type * from '@components/interfaces/highlighter-component.interface';
 
 /**
  * Default color scheme for semantic highlighting
@@ -67,23 +39,23 @@ export const enum Colors {
  */
 
 const defaultScheme: HighlightSchemeInterface = {
-    enumColor: Colors.burntOrange,
-    typeColor: Colors.lightGoldenrodYellow,
-    classColor: Colors.lightOrange,
-    stringColor: Colors.oliveGreen,
-    keywordColor: Colors.lightCoral,
-    commentColor: Colors.darkGray,
-    functionColor: Colors.lightOrange,
-    variableColor: Colors.burntOrange,
-    interfaceColor: Colors.lightGoldenrodYellow,
-    parameterColor: Colors.deepOrange,
-    getAccessorColor: Colors.lightYellow,
-    numericLiteralColor: Colors.lightGray,
-    methodSignatureColor: Colors.burntOrange,
-    regularExpressionColor: Colors.oliveGreen,
-    propertyAssignmentColor: Colors.canaryYellow,
-    propertyAccessExpressionColor: Colors.lightYellow,
-    expressionWithTypeArgumentsColor: Colors.lightOrange
+    enumColor: xterm.burntOrange,
+    typeColor: xterm.lightGoldenrodYellow,
+    classColor: xterm.lightOrange,
+    stringColor: xterm.oliveGreen,
+    keywordColor: xterm.lightCoral,
+    commentColor: xterm.darkGray,
+    functionColor: xterm.lightOrange,
+    variableColor: xterm.burntOrange,
+    interfaceColor: xterm.lightGoldenrodYellow,
+    parameterColor: xterm.deepOrange,
+    getAccessorColor: xterm.lightYellow,
+    numericLiteralColor: xterm.lightGray,
+    methodSignatureColor: xterm.burntOrange,
+    regularExpressionColor: xterm.oliveGreen,
+    propertyAssignmentColor: xterm.canaryYellow,
+    propertyAccessExpressionColor: xterm.lightYellow,
+    expressionWithTypeArgumentsColor: xterm.lightOrange
 };
 
 /**
@@ -172,14 +144,14 @@ export class CodeHighlighter {
                 if (!lastSegment) return;
 
                 const source = this.getSegmentSource(segment.start, segment.end);
-                const combinedSource = `${ segment.color }${ source }${ parent.color }`;
+                const combinedSource = `${ segment.color(source) }`;
                 result.push(lastSegment.replace(source, combinedSource));
 
                 return;
             }
 
             result.push(this.getSegmentSource(previousSegmentEnd, segment.start));
-            result.push(`${ segment.color }${ this.getSegmentSource(segment.start, segment.end) }${ segment.reset }`);
+            result.push(segment.color(this.getSegmentSource(segment.start, segment.end)));
             previousSegmentEnd = segment.end;
             parent = segment;
         });
@@ -192,7 +164,7 @@ export class CodeHighlighter {
      *
      * @param start - The starting index position in the source text
      * @param end - The ending index position in the source text (optional)
-     * @returns The substring of source text between the start and end positions
+     * @returns The substring of a source text between the start and end positions
      *
      * @remarks
      * This utility method provides access to specific portions of the source code
@@ -208,7 +180,7 @@ export class CodeHighlighter {
      * // Extract a variable name
      * const variableName = this.getSegmentSource(10, 15);
      *
-     * // Extract from a position to the end of source
+     * // Extract from a position to the end of a source
      * const remaining = this.getSegmentSource(100);
      * ```
      *
@@ -227,8 +199,7 @@ export class CodeHighlighter {
      *
      * @param start - The starting position of the segment in the source text
      * @param end - The ending position of the segment in the source text
-     * @param color - The color code to apply to this segment
-     * @param reset - The color reset code to apply after the segment (defaults to the standard reset code)
+     * @param color - The {@link ColorFunctionType} to apply to this segment
      *
      * @remarks
      * This method creates a unique key for each segment based on its position and stores the segment information in a map.
@@ -241,10 +212,10 @@ export class CodeHighlighter {
      * @example
      * ```ts
      * // Highlight a variable name in red
-     * this.addSegment(10, 15, Colors.red);
+     * this.addSegment(10, 15, xterm.red);
      *
-     * // Highlight a keyword with custom color and reset
-     * this.addSegment(20, 26, Colors.blue, Colors.customReset);
+     * // Highlight a keyword with custom color
+     * this.addSegment(20, 26, xterm.blue);
      * ```
      *
      * @see Colors
@@ -252,10 +223,9 @@ export class CodeHighlighter {
      *
      * @since 1.0.0
      */
-
-    private addSegment(start: number, end: number, color: string, reset: string = Colors.reset): void {
+    private addSegment(start: number, end: number, color: ColorFunctionType): void {
         const key = `${ start }-${ end }`;
-        this.segments.set(key, { start, end, color, reset });
+        this.segments.set(key, { start, end, color });
     }
 
     /**
@@ -314,7 +284,7 @@ export class CodeHighlighter {
      *    keyword range (between FirstKeyword and LastKeyword) and highlights it using
      *    the keyword color.
      *
-     * Each identified token is added to the segments collection with appropriate position
+     * Each identified token is added to the segment collection with the appropriate position
      * and color information.
      *
      * @example
@@ -478,7 +448,7 @@ export class CodeHighlighter {
      *
      * @remarks
      * This method identifies the node's kind and applies the appropriate color for highlighting.
-     * It handles various syntax kinds including literals (string, numeric, regular expressions),
+     * It handles various syntax kinds, including literals (string, numeric, regular expressions),
      * template expressions, identifiers, and type references.
      * For complex node types like template expressions and identifiers, it delegates to specialized processing methods.
      *
@@ -489,7 +459,7 @@ export class CodeHighlighter {
      * // Inside the CodeHighlighter class
      * const node = sourceFile.getChildAt(0);
      * this.processNode(node);
-     * // Node is now added to the segments map with appropriate colors
+     * // Node is now added to the segment map with appropriate colors
      * ```
      *
      * @see processTemplateExpression

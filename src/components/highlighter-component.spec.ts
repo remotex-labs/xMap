@@ -8,28 +8,39 @@ import type { PositionWithCodeInterface } from '@services/interfaces/source-serv
  * Imports
  */
 
-import * as ts from 'typescript';
+import ts from 'typescript';
+import { xterm } from '@remotex-labs/xansi/xterm.component';
 import { formatErrorCode } from '@components/formatter.component';
-import { CodeHighlighter, Colors, highlightCode } from '@components/highlighter.component';
+import { CodeHighlighter, highlightCode } from '@components/highlighter.component';
+
+/**
+ * Mock dependencies
+ */
+
+jest.mock('@remotex-labs/xansi');
+
+/**
+ * Schema test
+ */
 
 const schema = {
-    enumColor: Colors.burntOrange,
-    typeColor: Colors.lightGoldenrodYellow,
-    classColor: Colors.lightOrange,
-    stringColor: Colors.oliveGreen,
-    keywordColor: Colors.lightCoral,
-    commentColor: Colors.darkGray,
-    functionColor: Colors.lightOrange,
-    variableColor: Colors.burntOrange,
-    interfaceColor: Colors.lightGoldenrodYellow,
-    parameterColor: Colors.deepOrange,
-    getAccessorColor: Colors.lightYellow,
-    numericLiteralColor: Colors.lightGray,
-    methodSignatureColor: Colors.burntOrange,
-    regularExpressionColor: Colors.oliveGreen,
-    propertyAssignmentColor: Colors.canaryYellow,
-    propertyAccessExpressionColor: Colors.lightYellow,
-    expressionWithTypeArgumentsColor: Colors.lightOrange
+    enumColor: xterm.burntOrange,
+    typeColor: xterm.lightGoldenrodYellow,
+    classColor: xterm.lightOrange,
+    stringColor: xterm.oliveGreen,
+    keywordColor: xterm.lightCoral,
+    commentColor: xterm.darkGray,
+    functionColor: xterm.lightOrange,
+    variableColor: xterm.burntOrange,
+    interfaceColor: xterm.lightGoldenrodYellow,
+    parameterColor: xterm.deepOrange,
+    getAccessorColor: xterm.lightYellow,
+    numericLiteralColor: xterm.lightGray,
+    methodSignatureColor: xterm.burntOrange,
+    regularExpressionColor: xterm.oliveGreen,
+    propertyAssignmentColor: xterm.canaryYellow,
+    propertyAccessExpressionColor: xterm.lightYellow,
+    expressionWithTypeArgumentsColor: xterm.lightOrange
 };
 
 /**
@@ -38,40 +49,39 @@ const schema = {
 
 describe('highlightCode', () => {
     beforeEach(() => {
+        jest.restoreAllMocks();
     });
 
     test('should highlight keywords in the code', () => {
         const code = 'const x = 42;';
-        const highlightedCode = highlightCode(code, { keywordColor: Colors.brightPink });
+        const highlightedCode = highlightCode(code, { keywordColor: (text: string) => `brightPink: ${ text }` });
 
-        expect(highlightedCode).toContain(Colors.brightPink);
+        expect(highlightedCode).toContain('brightPink: ');
         expect(highlightedCode).toContain('const');
-        expect(highlightedCode).toContain(Colors.reset);
     });
 
     test('should highlight string literals in the code', () => {
         const code = 'const str = "hello";';
-        const highlightedCode = highlightCode(code, { stringColor: Colors.oliveGreen });
-        expect(highlightedCode).toContain(Colors.oliveGreen);
+        const highlightedCode = highlightCode(code, { stringColor: (text: string) => `oliveGreen: ${ text }` });
+        expect(highlightedCode).toContain('oliveGreen: ');
         expect(highlightedCode).toContain('"hello"');
-        expect(highlightedCode).toContain(Colors.reset);
     });
 
     test('should highlight comments in the code', () => {
         const code = '// this is a comment\nconst x = 42;';
-        const highlightedCode = highlightCode(code, { commentColor: Colors.darkGray });
-        expect(highlightedCode).toContain(Colors.darkGray);
+        const highlightedCode = highlightCode(code, { commentColor: (text: string) => `darkGray: ${ text }` });
+        expect(highlightedCode).toContain('darkGray: ');
         expect(highlightedCode).toContain('// this is a comment');
-        expect(highlightedCode).toContain(Colors.reset);
     });
 
     test('should use default scheme when no schema is provided', () => {
         const code = 'const x: number = 42;';
-        const highlightedCode = highlightCode(code, { keywordColor: Colors.lightCoral });
-        expect(highlightedCode).toContain(Colors.burntOrange);
-        expect(highlightedCode).toContain(Colors.lightGoldenrodYellow);
-        expect(highlightedCode).toContain(Colors.lightCoral);
-        expect(highlightedCode).toContain(Colors.reset);
+        const highlightedCode = highlightCode(code, { keywordColor: (text: string) => `lightCoral: ${ text }` });
+
+        expect(highlightedCode).toBe(
+            'lightCoral: const \u001b[38;5;208mx\u001b[39m: ' +
+            '\u001b[38;5;221mnumber\u001b[39m = \u001b[38;5;252m42\u001b[39m;'
+        );
     });
 
     test('should combine segments correctly when segment.start < parent.end', () => {
@@ -79,7 +89,7 @@ describe('highlightCode', () => {
         const result = highlightCode(code, schema);
 
         expect(result).toBe(
-            '\u001b[38;5;203mconst\u001b[0m \u001b[38;5;208mx\u001b[0m: \u001b[38;5;221mPromise\u001b[0m<\u001b[38;5;221mstring\u001b[0m>;'
+            '\u001b[38;5;203mconst\u001b[39m \u001b[38;5;208mx\u001b[39m: \u001b[38;5;221mPromise\u001b[39m<\u001b[38;5;221mstring\u001b[39m>;'
         );
     });
 
@@ -88,8 +98,8 @@ describe('highlightCode', () => {
         const result = highlightCode(code, schema);
 
         expect(result).toBe(
-            '\u001b[38;5;203mconst\u001b[0m \u001b[38;5;208mx\u001b[0m: \u001b[38;5;221mstring\u001b[0m = \u001b[38;5;149m`dat to validate ${\u001b[0m ' +
-            '\u001b[38;5;203mthis\u001b[0m.\u001b[38;5;230mname\u001b[0m \u001b[38;5;149m} end string`\u001b[0m'
+            '\u001b[38;5;203mconst\u001b[39m \u001b[38;5;208mx\u001b[39m: \u001b[38;5;221mstring\u001b[39m = ' +
+            '\u001b[38;5;149m`dat to validate ${\u001b[39m \u001b[38;5;203mthis\u001b[39m.\u001b[38;5;230mname\u001b[39m \u001b[38;5;149m} end string`\u001b[39m'
         );
     });
 });
@@ -101,6 +111,7 @@ describe('Process Identifier', () => {
     beforeEach(() => {
         highlighter = new CodeHighlighter(<any> {}, '', schema);
         (<any> highlighter).addSegment = mockAddSegment;
+        jest.resetAllMocks();
     });
 
     const testCases = [
@@ -191,6 +202,7 @@ describe('Process Node', () => {
     beforeEach(() => {
         highlighter = new CodeHighlighter(<any> {}, '', schema);
         (<any> highlighter).addSegment = mockAddSegment;
+        jest.resetAllMocks();
     });
 
     const testCases = [
@@ -229,12 +241,11 @@ describe('formatErrorCode', () => {
             startLine: 1
         };
         const ansiOption = {
-            color: '\x1b[38;5;160m',
-            reset: '\x1b[0m'
+            color: xterm.red
         };
 
         const result = formatErrorCode(sourcePosition, ansiOption);
-        expect(result).toBe('      2 | line1\n    \u001b[38;5;160m>\u001b[0m 3 | line2\n        |    \u001b[38;5;160m^\u001b[0m\n      4 | line3');
+        expect(result).toBe('      2 | line1\n    \u001b[31m>\u001b[39m 3 | line2\n        |    \u001b[31m^\u001b[39m\n      4 | line3');
     });
 
     test('should format code with error highlight', () => {

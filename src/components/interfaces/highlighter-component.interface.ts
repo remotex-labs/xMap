@@ -1,68 +1,148 @@
 /**
- * Defines the color scheme for syntax highlighting different code elements.
+ * Represents a function that applies coloring or formatting to strings.
  *
- * @interface HighlightSchemeInterface
- *
- * @property enumColor - Color code for enum declarations and references
- * @property typeColor - Color code for type annotations and primitive types
- * @property classColor - Color code for class declarations and references
- * @property stringColor - Color code for string literals and template strings
- * @property keywordColor - Color code for language keywords
- * @property commentColor - Color code for comments (single-line and multi-line)
- * @property functionColor - Color code for function declarations and calls
- * @property variableColor - Color code for variable declarations and references
- * @property interfaceColor - Color code for interface declarations and references
- * @property parameterColor - Color code for function and method parameters
- * @property getAccessorColor - Color code for getter accessor methods
- * @property numericLiteralColor - Color code for numeric literals
- * @property methodSignatureColor - Color code for method signatures in interfaces
- * @property regularExpressionColor - Color code for regular expression literals
- * @property propertyAssignmentColor - Color code for property assignments in object literals
- * @property propertyAccessExpressionColor - Color code for property access expressions
- * @property expressionWithTypeArgumentsColor - Color code for type arguments in expressions
- *
- * @example
- * ```ts
- * const darkTheme: HighlightSchemeInterface = {
- *   enumColor: Colors.cyan,
- *   typeColor: Colors.blue,
- *   classColor: Colors.yellow,
- *   // ...other color definitions
- * };
- * ```
+ * @param args - Strings to be formatted
+ * @returns The formatted string
  *
  * @since 1.0.0
  */
 
+export type ColorFunctionType = (...args: Array<string>) => string;
+
+/**
+ * Defines a color scheme for syntax highlighting various code elements.
+ *
+ * @remarks
+ * Each property is a {@link ColorFunctionType} that formats a specific type of syntax element,
+ * such as enums, classes, keywords, or literals.
+ *
+ * @see ColorFunctionType
+ * @since 1.0.0
+ */
+
 export interface HighlightSchemeInterface {
-    enumColor: string;
-    typeColor: string;
-    classColor: string;
-    stringColor: string;
-    keywordColor: string;
-    commentColor: string;
-    functionColor: string;
-    variableColor: string;
-    interfaceColor: string;
-    parameterColor: string;
-    getAccessorColor: string;
-    numericLiteralColor: string;
-    methodSignatureColor: string;
-    regularExpressionColor: string;
-    propertyAssignmentColor: string;
-    propertyAccessExpressionColor: string;
-    expressionWithTypeArgumentsColor: string;
+    /**
+     * Color function for enum names.
+     * @since 1.0.0
+     */
+
+    enumColor: ColorFunctionType;
+
+    /**
+     * Color function for type names.
+     * @since 1.0.0
+     */
+
+    typeColor: ColorFunctionType;
+
+    /**
+     * Color function for class names.
+     * @since 1.0.0
+     */
+
+    classColor: ColorFunctionType;
+
+    /**
+     * Color function for string literals.
+     * @since 1.0.0
+     */
+
+    stringColor: ColorFunctionType;
+
+    /**
+     * Color function for language keywords.
+     * @since 1.0.0
+     */
+
+    keywordColor: ColorFunctionType;
+
+    /**
+     * Color function for comments.
+     * @since 1.0.0
+     */
+
+    commentColor: ColorFunctionType;
+
+    /**
+     * Color function for function names.
+     * @since 1.0.0
+     */
+
+    functionColor: ColorFunctionType;
+
+    /**
+     * Color function for variable names.
+     * @since 1.0.0
+     */
+
+    variableColor: ColorFunctionType;
+
+    /**
+     * Color function for interface names.
+     * @since 1.0.0
+     */
+
+    interfaceColor: ColorFunctionType;
+
+    /**
+     * Color function for function/method parameters.
+     * @since 1.0.0
+     */
+
+    parameterColor: ColorFunctionType;
+
+    /**
+     * Color function for getter accessor names.
+     * @since 1.0.0
+     */
+
+    getAccessorColor: ColorFunctionType;
+
+    /**
+     * Color function for numeric literals.
+     * @since 1.0.0
+     */
+
+    numericLiteralColor: ColorFunctionType;
+
+    /**
+     * Color function for method signatures.
+     * @since 1.0.0
+     */
+
+    methodSignatureColor: ColorFunctionType;
+
+    /**
+     * Color function for regular expressions.
+     * @since 1.0.0
+     */
+
+    regularExpressionColor: ColorFunctionType;
+
+    /**
+     * Color function for property assignments.
+     * @since 1.0.0
+     */
+
+    propertyAssignmentColor: ColorFunctionType;
+
+    /**
+     * Color function for property access expressions.
+     * @since 1.0.0
+     */
+
+    propertyAccessExpressionColor: ColorFunctionType;
+
+    /**
+     * Color function for expressions with type arguments.
+     * @since 1.0.0
+     */
+
+    expressionWithTypeArgumentsColor: ColorFunctionType;
 }
 
 /**
  * Represents a segment of source code to be highlighted with specific styling.
- *
- * @interface HighlightNodeSegmentInterface
- *
- * @property start - The starting character position of the segment in the source text
- * @property end - The ending character position of the segment in the source text
- * @property color - The color or style code to apply to this segment
- * @property reset - The reset code that returns formatting to normal after this segment
  *
  * @remarks
  * Segments are the fundamental units of the highlighting system.
@@ -83,15 +163,28 @@ export interface HighlightSchemeInterface {
  * };
  * ```
  *
- * @see HighlightSchemeInterface
  * @see addSegment
+ * @see HighlightSchemeInterface
  *
  * @since 1.0.0
  */
 
 export interface HighlightNodeSegmentInterface {
-    end: number;
+    /**
+     * The starting character position of the segment in the source text.
+     * @since 1.0.0
+     */
     start: number;
-    color: string;
-    reset: string;
+
+    /**
+     * The ending character position of the segment in the source text.
+     * @since 1.0.0
+     */
+    end: number;
+
+    /**
+     * The color or style code to apply to this segment.
+     * @since 1.0.0
+     */
+    color: ColorFunctionType;
 }
