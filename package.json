@@ -8,7 +8,7 @@
     "version": "v1.0.0-local",
     "license": "Mozilla Public License Version 2.0",
     "description": "A library with a sourcemap parser and TypeScript code formatter for the CLI",
-    "homepage": "https://github.com/remotex-lab/xMap",
+    "homepage": "https://remotex-labs.github.io/xMap/",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/remotex-lab/xMap.git"
@@ -86,13 +86,18 @@
         "lint": "xbuild --tc && eslint . -c ./eslint.config.mjs",
         "ci:test": "jest",
         "ci:clean": "rm -rf ./dist",
-        "ci:build": "npm run build"
+        "ci:build": "npm run build",
+        "docs:dev": "vitepress dev docs",
+        "docs:build": "vitepress build docs",
+        "docs:preview": "vitepress preview docs"
     },
     "devDependencies": {
         "jest": "^30.0.5",
         "eslint": "^9.28.0",
+        "vitepress": "^1.6.4",
         "typescript-eslint": "^8.40.0",
         "eslint-plugin-tsdoc": "^0.4.0",
+        "vitepress-versioning-plugin": "^1.3.0",
         "eslint-plugin-perfectionist": "^4.15.0",
         "@swc/jest": "^0.2.39",
         "@types/jest": "^30.0.0",
