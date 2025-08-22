@@ -71,34 +71,6 @@ export interface SegmentOffsetInterface extends SegmentInterface {
 }
 
 /**
- * Determines the matching behavior when searching for segments in a source map.
- *
- * @property BOUND - No directional preference; returns the first matching segment found
- * @property LOWER_BOUND - Prefers segments with column values lower than or equal to the target
- * @property UPPER_BOUND - Prefers segments with column values greater than or equal to the target
- *
- * @remarks
- * The bias affects how segment lookups behave when an exact position match cannot be found.
- * This provides flexibility in determining which nearby mapping should be preferred when
- * working with source map data that might not have exact matches for every position.
- *
- * @example
- * ```ts
- * // When searching for a position not exactly in the map:
- * findSegmentForPosition(line, column, Bias.LOWER_BOUND); // Prefers the position just before
- * findSegmentForPosition(line, column, Bias.UPPER_BOUND); // Prefers the position just after
- * ```
- *
- * @since 1.0.0
- */
-
-export const enum Bias {
-    BOUND,
-    LOWER_BOUND,
-    UPPER_BOUND
-}
-
-/**
  * Represents a collection of mapping segments for a single line in generated code.
  *
  * @remarks

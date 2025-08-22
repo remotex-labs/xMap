@@ -8,8 +8,8 @@ import type { MapType, SegmentInterface, SegmentOffsetInterface } from './interf
  * Imports
  */
 
+import { Bias } from '@services/source.service';
 import { MappingProvider } from './mapping.provider';
-import { Bias } from './interfaces/mapping-provider.interface';
 
 /**
  * Tests

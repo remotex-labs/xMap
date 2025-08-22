@@ -8,8 +8,7 @@ import type { PositionInterface, SourceMapInterface } from '@services/interfaces
  * Imports
  */
 
-import { SourceService } from '@services/source.service';
-import { Bias } from '@providers/interfaces/mapping-provider.interface';
+import { SourceService, Bias } from '@services/source.service';
 
 describe('SourceService', () => {
     describe('constructor', () => {
