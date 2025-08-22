@@ -223,6 +223,7 @@ export class CodeHighlighter {
      *
      * @since 1.0.0
      */
+
     private addSegment(start: number, end: number, color: ColorFunctionType): void {
         const key = `${ start }-${ end }`;
         this.segments.set(key, { start, end, color });

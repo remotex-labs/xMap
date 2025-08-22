@@ -8,7 +8,7 @@ import type { MapType, FrameType, SegmentInterface, SegmentOffsetInterface } fro
  * Imports
  */
 
-import { Bias } from './interfaces/mapping-provider.interface';
+import { Bias } from '@services/source.service';
 import { decodeVLQ, encodeArrayVLQ } from '@components/base64.component';
 
 /**
