@@ -60,7 +60,7 @@ console.log(highlightedCode);
 ```
 
 Output:
-![image](images/code.png)
+![image](/images/code.png)
 
 ## How the Highlighter Works
 The highlighter works by:
