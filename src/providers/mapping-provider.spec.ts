@@ -44,7 +44,7 @@ describe('validateSegment', () => {
             generatedLine: 1,
             generatedColumn: 3
         };
-        expect(() => instance.decode(<any> [[ invalidSegment ]], 0, 0)).toThrowError('Invalid segment: line must be a finite number, received Infinity');
+        expect(() => instance.decode(<any> [[ invalidSegment ]], 0, 0)).toThrow('Invalid segment: line must be a finite number, received Infinity');
     });
 
     test('should throw an error if column is not a finite number', () => {
@@ -56,7 +56,7 @@ describe('validateSegment', () => {
             generatedLine: 1,
             generatedColumn: 3
         };
-        expect(() => instance.decode(<any> [[ invalidSegment ]], 0, 0)).toThrowError('Invalid segment: column must be a finite number, received NaN');
+        expect(() => instance.decode(<any> [[ invalidSegment ]], 0, 0)).toThrow('Invalid segment: column must be a finite number, received NaN');
     });
 
     test('should throw an error if nameIndex is not a finite number or null', () => {
@@ -69,7 +69,7 @@ describe('validateSegment', () => {
             generatedColumn: 3
         };
         expect(() => instance.decode(<any> [[ invalidSegment ]], 0, 0))
-            .toThrowError('Invalid segment: nameIndex must be a number or null, received undefined');
+            .toThrow('Invalid segment: nameIndex must be a number or null, received undefined');
     });
 
     test('should throw an error if sourceIndex is not a finite number', () => {
@@ -82,7 +82,7 @@ describe('validateSegment', () => {
             generatedColumn: 3
         };
         expect(() => instance.decode(<any> [[ invalidSegment ]], 0, 0))
-            .toThrowError('Invalid segment: sourceIndex must be a finite number, received NaN');
+            .toThrow('Invalid segment: sourceIndex must be a finite number, received NaN');
     });
 
     test('should throw an error if generatedLine is not a finite number', () => {
@@ -95,7 +95,7 @@ describe('validateSegment', () => {
             generatedColumn: 3
         };
         expect(() => instance.decode(<any> [[ invalidSegment ]], 0, 0))
-            .toThrowError('Invalid segment: generatedLine must be a finite number, received -Infinity');
+            .toThrow('Invalid segment: generatedLine must be a finite number, received -Infinity');
     });
 
     test('should throw an error if generatedColumn is not a finite number', () => {
@@ -108,7 +108,7 @@ describe('validateSegment', () => {
             generatedColumn: null
         };
         expect(() => instance.decode(<any> [[ invalidSegment ]], 0, 0))
-            .toThrowError('Invalid segment: generatedColumn must be a finite number, received null');
+            .toThrow('Invalid segment: generatedColumn must be a finite number, received null');
     });
 });
 

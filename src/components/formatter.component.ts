@@ -1,15 +1,15 @@
 /**
- * Export interfaces
- */
-
-export type * from '@components/interfaces/formatter-component.interface';
-
-/**
  * Import will remove at compile time
  */
 
 import type { PositionWithCodeInterface } from '@services/interfaces/source-service.interface';
 import type { AnsiOptionInterface, FormatCodeInterface } from '@components/interfaces/formatter-component.interface';
+
+/**
+ * Export interfaces
+ */
+
+export type * from '@components/interfaces/formatter-component.interface';
 
 /**
  * Formats a code snippet with optional line padding and custom actions
@@ -106,9 +106,9 @@ export function formatErrorCode(sourcePosition: PositionWithCodeInterface, ansiO
                 let prefixPointer = '>';
 
                 if (ansiOption) {
-                    pointer = `${ ansiOption.color }${ pointer }${ ansiOption.reset }`;
-                    ansiPadding += (ansiOption.color.length + ansiOption.reset.length);
-                    prefixPointer = `${ ansiOption.color }>${ ansiOption.reset }`;
+                    pointer = ansiOption.color(pointer);
+                    ansiPadding += pointer.length - 1;
+                    prefixPointer = ansiOption.color('>');
                 }
 
                 const errorMarker = ' | '.padStart(padding) + ' '.repeat(errorColumn - 1) + `${ pointer }`;
