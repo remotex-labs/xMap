@@ -117,7 +117,7 @@ const customHighlightedCode = highlightCode(code, customScheme);
 console.log(customHighlightedCode)
 ```
 
-![image](images/code.png)
+![image](/images/code.png)
 ## formatCode
 The `formatCode` function formats a given code snippet, adding line numbers with customizable padding and enabling specific actions for particular lines.
 This utility is useful for displaying code snippets in a user-friendly manner, particularly in documentation or debugging scenarios.
@@ -148,7 +148,7 @@ const formattedCode = formatCode(highlightCode(code), {
 
 console.log(formattedCode);
 ```
-![image](images/formatCode.png)
+![image](/images/formatCode.png)
 
 ```ts
 import { formatErrorCode } from '@remotex-labs/xmap/formatter.component';
@@ -175,7 +175,7 @@ const formattedError = formatErrorCode(sourcePosition, {
 console.log(formattedError)
 ```
 
-![image](images/formatErrorCode.png)
+![image](/images/formatErrorCode.png)
 
 ## Practical Examples
 ### Working with Source Maps and Errors
