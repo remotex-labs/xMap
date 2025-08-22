@@ -11,12 +11,6 @@ You can import the ANSI component in two ways:
 import { highlightCode } from '@remotex-labs/xmap/highlighter.component';
 ```
 
-or
-
-```ts
-import { highlightCode } from '@remotex-labs/xmap';
-```
-
 ## highlightCode
 The `highlightCode` function is the main entry point for syntax highlighting in xMap. 
 

@@ -10,12 +10,6 @@ You can import the ANSI component in two ways:
 import { parseErrorStack } from '@remotex-labs/xmap/parser.component';
 ```
 
-or
-
-```ts
-import { parseErrorStack } from '@remotex-labs/xmap';
-```
-
 ## parseErrorStack
 The `parseErrorStack` function is the main entry point for stack trace parsing in xMap. 
 

@@ -10,12 +10,6 @@ You can import the ANSI component in two ways:
 import { formatCode } from '@remotex-labs/xmap/formatter.component';
 ```
 
-or
-
-```ts
-import { formatCode } from '@remotex-labs/xmap';
-```
-
 ## formatCode
 The `formatCode` function formats source code snippets with line numbers and optional custom formatting for specific lines.
 This is particularly useful for displaying code in documentation, error messages, or debugging output.
