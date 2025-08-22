@@ -158,8 +158,7 @@ export interface HighlightSchemeInterface {
  * const keywordSegment: HighlightNodeSegmentInterface = {
  *   start: 0,
  *   end: 6,
- *   color: '\x1b[34m', // Blue for the keyword "import"
- *   reset: '\x1b[0m'   // Reset to default
+ *   color: xterm.red
  * };
  * ```
  *

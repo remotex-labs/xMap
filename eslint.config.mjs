@@ -219,7 +219,9 @@ export default defineConfig([
         ignores: [
             'dist/*',
             'includes/*',
-            'jest.config.cjs'
+            'jest.config.cjs',
+            'docs/.vitepress/dist/*',
+            'docs/.vitepress/cache/*'
         ]
     }
 ]);

@@ -1,9 +1,8 @@
-# xMap
+---
+outline: deep
+---
 
-[![npm version](https://img.shields.io/badge/Documentation-orange?logo=typescript&logoColor=f5f5f5)](https://remotex-labs.github.io/xMap/)
-[![npm version](https://img.shields.io/npm/v/@remotex-labs/xmap.svg)](https://www.npmjs.com/package/@remotex-labs/xmap)
-[![License: MPL 2.0](https://img.shields.io/badge/License-MPL_2.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0)
-[![Node.js CI](https://github.com/remotex-labs/xMap/actions/workflows/node.js.yml/badge.svg)](https://github.com/remotex-labs/xMap/actions/workflows/node.js.yml)
+# Guide
 
 `xMap` is a TypeScript library for working with source maps, stack trace parsing, and code formatting. It provides powerful tools for debugging, error reporting, and code visualization in CLI environments.
 
@@ -57,8 +56,8 @@ const positionWithCode = sourceService.getPositionWithCode(12, 34, Bias.LOWER_BO
 
 #### Understanding Bias
 When querying source maps, the parameter controls how positions are matched: `Bias`
-- `Bias.BOUND` - No directional preference; returns the first match found 
-- `Bias.LOWER_BOUND` - Prefers segments with column values ≤ the target 
+- `Bias.BOUND` - No directional preference; returns the first match found
+- `Bias.LOWER_BOUND` - Prefers segments with column values ≤ the target
 - `Bias.UPPER_BOUND` - Prefers segments with column values ≥ the target `Bias.UPPER_BOUND`
 
 Example:
@@ -118,9 +117,9 @@ const customHighlightedCode = highlightCode(code, customScheme);
 console.log(customHighlightedCode)
 ```
 
-![image](docs/src/public/images/code.png)
+![image](images/code.png)
 ## formatCode
-The `formatCode` function formats a given code snippet, adding line numbers with customizable padding and enabling specific actions for particular lines. 
+The `formatCode` function formats a given code snippet, adding line numbers with customizable padding and enabling specific actions for particular lines.
 This utility is useful for displaying code snippets in a user-friendly manner, particularly in documentation or debugging scenarios.
 
 ```ts
@@ -149,7 +148,7 @@ const formattedCode = formatCode(highlightCode(code), {
 
 console.log(formattedCode);
 ```
-![image](docs/src/public/images/formatCode.png)
+![image](images/formatCode.png)
 
 ```ts
 import { formatErrorCode } from '@remotex-labs/xmap/formatter.component';
@@ -176,7 +175,7 @@ const formattedError = formatErrorCode(sourcePosition, {
 console.log(formattedError)
 ```
 
-![image](docs/src/public/images/formatErrorCode.png)
+![image](images/formatErrorCode.png)
 
 ## Practical Examples
 ### Working with Source Maps and Errors
@@ -249,22 +248,3 @@ const positionWithCode = sourceService.getPositionWithCode(1, 104, 1, { linesBef
 console.log(positionWithCode);
 
 ```
-
-## Documentation
-For complete API documentation, examples, and guides, visit: [xMap Documentation](https://remotex-labs.github.io/xMap/)
-
-## Compatibility
-- Node.js 20+
-- All modern browsers (via bundlers)
-- TypeScript 4.5+
-
-## Contributing
-Contributions are welcome!\
-Please see our [Contributing Guide](CONTRIBUTING.md) for details.
-
-
-## License
-This project is licensed under the Mozilla Public License 2.0 - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-- Built with TypeScript
