@@ -399,6 +399,50 @@ export function parseStackLine(line: string, engine: JSEngines): StackFrameInter
 }
 
 /**
+ * Extracts the stack frames from a full stack trace string, removing the error message line.
+ *
+ * @param stack - The full error stack string, possibly including the error message
+ * @returns The stack trace starting from the first stack frame, or an empty string if no frames are found
+ *
+ * @remarks
+ * This function scans the stack string for lines matching common stack frame formats,
+ * including V8 (`at ...`) and SpiderMonkey/JavaScriptCore (`function@file:line:column`) patterns.
+ * It returns only the portion of the stack that contains the frames, discarding the initial
+ * error message or any non-stack lines.
+ *
+ * @example
+ * ```ts
+ * const stack = `
+ * Error: Something went wrong
+ *     at doSomething (file.js:10:15)
+ *     at main (file.js:20:5)
+ * `;
+ *
+ * console.log(getStackWithoutMessage(stack));
+ * // Output:
+ * // at doSomething (file.js:10:15)
+ * // at main (file.js:20:5)
+ * ```
+ *
+ * @since 4.0.1
+ */
+
+export function getStackWithoutMessage(stack: string): string {
+    if (!stack) return '';
+
+    const stackFramePattern = /^\s*at .+$|^.+@.+:\d+:\d+$|^@.+:\d+:\d+$|^.+@\[native code\]$/;
+    const lines = stack.split('\n');
+
+    for (let i = 0; i < lines.length; i++) {
+        if (stackFramePattern.test(lines[i])) {
+            return lines.slice(i).join('\n');
+        }
+    }
+
+    return '';
+}
+
+/**
  * Parses a complete error stack trace into a structured format
  *
  * @param error - Error object or error message string to parse
@@ -430,16 +474,15 @@ export function parseStackLine(line: string, engine: JSEngines): StackFrameInter
  */
 
 export function parseErrorStack(error: Error | string): ParsedStackTraceInterface {
-    const errorObj = typeof error === 'string' ? new Error(error) : error;
-    const stack = errorObj.stack || '';
-    const message = errorObj.message || '';
+    const errorObj = typeof error === 'string' ? { stack: error, message: error, name: '' } : error;
     const name = errorObj.name || 'Error';
+    const stack = getStackWithoutMessage(errorObj.stack || '');
+    const message = errorObj?.message || '';
 
     const engine = detectJSEngine(stack);
     const stackLines = stack.split('\n')
         .map(line => line.trim())
-        .filter(line => line.trim() !== '')
-        .slice(1);
+        .filter(line => line.trim() !== '');
 
     return {
         name,

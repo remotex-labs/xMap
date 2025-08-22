@@ -9,6 +9,7 @@ import {
     detectJSEngine,
     parseErrorStack,
     parseV8StackLine,
+    getStackWithoutMessage,
     parseSpiderMonkeyStackLine,
     parseJavaScriptCoreStackLine
 } from './parser.component';
@@ -888,12 +889,13 @@ describe('parseErrorStack', () => {
 
             // Parse it
             const result = parseErrorStack(originalError);
+            const stack = originalError.stack?.split('\n').slice(1).join('\n');
 
             // Basic assertions
             expect(result).toBeDefined();
             expect(result.name).toBe('Error');
             expect(result.message).toBe('Test error');
-            expect(result.rawStack).toBe(originalError.stack);
+            expect(result.rawStack).toBe(stack);
             expect(Array.isArray(result.stack)).toBe(true);
             expect(result.stack.length).toBeGreaterThan(0);
 
@@ -1097,5 +1099,75 @@ functionName@http://example.com/app.js:42:30`;
             expect(result.stack[2].functionName).toBe('functionName');
             expect(result.stack[2].fileName).toBe('http://example.com/app.js');
         });
+    });
+});
+
+
+describe('getStackWithoutMessage', () => {
+    test('should strip the error message from a V8 stack trace', () => {
+        const stack = `Error: something went wrong
+    at doSomething (/path/to/file.js:10:15)
+    at main (/path/to/file.js:20:5)`;
+
+        const result = getStackWithoutMessage(stack);
+
+        expect(result).toBe(`    at doSomething (/path/to/file.js:10:15)
+    at main (/path/to/file.js:20:5)`);
+    });
+
+    test('should strip the error message from a SpiderMonkey stack trace', () => {
+        const stack = `doSomething@/path/to/file.js:10:15
+main@/path/to/file.js:20:5`;
+
+        const result = getStackWithoutMessage(stack);
+
+        expect(result).toBe(stack);
+    });
+
+    test('should strip the error message from a JavaScriptCore stack trace', () => {
+        const stack = `@/path/to/file.js:10:15
+@/path/to/file.js:20:5`;
+
+        const result = getStackWithoutMessage(stack);
+
+        expect(result).toBe(stack);
+    });
+
+    test('should return empty string if there are no stack frames', () => {
+        const stack = 'Just an error message, no frames';
+        const result = getStackWithoutMessage(stack);
+
+        expect(result).toBe('');
+    });
+
+    test('should return empty string if input is empty', () => {
+        const result = getStackWithoutMessage('');
+        expect(result).toBe('');
+    });
+
+    test('should handle multiple lines before first stack frame', () => {
+        const stack = `Error: something went wrong
+Additional info: something failed
+Hint: check your config
+    at doSomething (/path/to/file.js:10:15)
+    at main (/path/to/file.js:20:5)`;
+
+        const result = getStackWithoutMessage(stack);
+
+        expect(result).toBe(`    at doSomething (/path/to/file.js:10:15)
+    at main (/path/to/file.js:20:5)`);
+    });
+
+    test('should handle multi-line stack frames', () => {
+        const stack = `Error: something went wrong
+    at doSomething (/path/to/file.js:10:15)
+        some inner details
+    at main (/path/to/file.js:20:5)`;
+
+        const result = getStackWithoutMessage(stack);
+
+        expect(result).toBe(`    at doSomething (/path/to/file.js:10:15)
+        some inner details
+    at main (/path/to/file.js:20:5)`);
     });
 });
