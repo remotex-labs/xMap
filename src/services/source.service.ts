@@ -234,7 +234,7 @@ export class SourceService {
     }
 
     /**
-     * Finds position in generated code based on original source position.
+     * Finds position in generated code based on the original source position.
      *
      * @param line - Line number in the original source
      * @param column - Column number in the original source
@@ -276,7 +276,7 @@ export class SourceService {
     }
 
     /**
-     * Finds position in an original source based on generated code position.
+     * Finds position in an original source based on the generated code position.
      *
      * @param line - Line number in the generated code
      * @param column - Column number in the generated code
