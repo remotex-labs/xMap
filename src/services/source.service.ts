@@ -369,9 +369,10 @@ export class SourceService {
         }, options);
 
         const code = this.sourcesContent[position.sourceIndex].split('\n');
-        const endLine = Math.min((position.line ?? 1) + settings.linesAfter, code.length);
-        const startLine = Math.max((position.line ?? 1) - settings.linesBefore, 0);
-        const relevantCode = code.slice(startLine, Math.min(endLine + 1, code.length)).join('\n');
+        const linePosition = (position.line ?? 1) - 1;
+        const startLine = Math.max(linePosition - settings.linesBefore, 0);
+        const endLine = Math.min(linePosition + settings.linesAfter, code.length - 1);
+        const relevantCode = code.slice(startLine, endLine + 1).join('\n');
 
         return {
             ...position,
