@@ -138,7 +138,7 @@ describe('SourceService', () => {
                 code: expect.any(String),
                 line: 2,
                 column: 5,
-                endLine: 6,
+                endLine: 5,
                 startLine: 0,
                 name: null,
                 source: 'src/x.spec.ts',
