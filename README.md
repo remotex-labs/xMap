@@ -4,6 +4,7 @@
 [![npm version](https://img.shields.io/npm/v/@remotex-labs/xmap.svg)](https://www.npmjs.com/package/@remotex-labs/xmap)
 [![License: MPL 2.0](https://img.shields.io/badge/License-MPL_2.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0)
 [![Node.js CI](https://github.com/remotex-labs/xMap/actions/workflows/node.js.yml/badge.svg)](https://github.com/remotex-labs/xMap/actions/workflows/node.js.yml)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/remotex-labs/xMap)
 
 `xMap` is a TypeScript library for working with source maps, stack trace parsing, and code formatting. It provides powerful tools for debugging, error reporting, and code visualization in CLI environments.
 
