@@ -27,7 +27,7 @@ const PATTERNS = {
         STANDARD: /^(.*)@(.*?)(?:(\[native code\])|:(\d+):(\d+))$/
     },
     JAVASCRIPT_CORE: {
-        STANDARD: /^(?:(global|eval)\s)?(.*)@(.*?)(?::(\d+)(?::(\d+))?)?$/
+        STANDARD: /^(?:(global|eval)\s)?(.*?)@(.*?)(?::(\d+)(?::(\d+))?)?$/
     }
 };
 
