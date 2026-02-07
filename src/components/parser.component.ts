@@ -18,7 +18,7 @@ import type { ParsedStackTraceInterface, StackFrameInterface } from '@components
 
 const PATTERNS = {
     V8: {
-        GLOBAL: /at\s(.*):(\d+):(\d+)/,
+        GLOBAL: /at\s(?:async\s)?(.+):(\d+):(\d+)/,
         STANDARD: /at\s(.*?)\((?:(.+?):(\d+):(\d+)|(native))\)/,
         EVAL: /^at\s(.+?)\s\(eval\sat\s(.+?)\s?\((.*):(\d+):(\d+)\),\s(.+?):(\d+):(\d+)\)$/
     },
