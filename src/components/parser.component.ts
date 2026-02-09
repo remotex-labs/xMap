@@ -23,8 +23,8 @@ const PATTERNS = {
         EVAL: /^at\s(.+?)\s\(eval\sat\s(.+?)\s?\((.*):(\d+):(\d+)\),\s(.+?):(\d+):(\d+)\)$/
     },
     SPIDERMONKEY: {
-        EVAL: /^(.*)@(.+?):(\d+):(\d+),\s(.+?)@(.+?):(\d+):(\d+)$/,
-        STANDARD: /^(.*)@(.*?)(?:(\[native code\])|:(\d+):(\d+))$/
+        EVAL: /^(.*?)@(.+?):(\d+):(\d+),\s(.+?)@(.+?):(\d+):(\d+)$/,
+        STANDARD: /^(.*?)@(.*?)(?:(\[native code\])|:(\d+):(\d+))$/
     },
     JAVASCRIPT_CORE: {
         STANDARD: /^(?:(global|eval)\s)?(.*?)@(.*?)(?::(\d+)(?::(\d+))?)?$/

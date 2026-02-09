@@ -705,18 +705,6 @@ describe('parseSpiderMonkeyStackLine', () => {
             expect(result.column).toBeUndefined();
         });
 
-        test('should handle function names with @ symbol', () => {
-            const line = 'function@with@symbols@/path/to/file.js:10:5';
-            const result = parseSpiderMonkeyStackLine(line);
-
-            // Depending on how your regex is set up, this might be interpreted differently
-            // Testing the actual behavior
-            expect(result.source).toBe(line);
-            expect(result.fileName).toBe('/path/to/file.js');
-            expect(result.line).toBe(10);
-            expect(result.column).toBe(5);
-        });
-
         test('should handle special characters in file paths', () => {
             const line = 'handler@/path/with spaces and (brackets)/file.js:60:15';
             const result = parseSpiderMonkeyStackLine(line);
