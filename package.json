@@ -102,7 +102,7 @@
         "@swc/jest": "^0.2.39",
         "@types/jest": "^30.0.0",
         "@types/node": "^25.3.0",
-        "@remotex-labs/xbuild": "^1.6.0"
+        "@remotex-labs/xbuild": "^2.1.5"
     },
     "dependencies": {
         "typescript": "^5.9.3",
