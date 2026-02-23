@@ -3,9 +3,8 @@
         "strict": true,
         "target": "ESNext",
         "module": "ESNext",
-        "baseUrl": "./src",
         "outDir": "dist",
-        "rootDir": ".",
+        "rootDir": "src",
         "declaration": true,
         "skipLibCheck": true,
         "importHelpers": true,
@@ -25,16 +24,19 @@
         ],
         "paths": {
             "@services/*": [
-                "./services/*"
+                "./src/services/*"
             ],
             "@providers/*": [
-                "./providers/*"
+                "./src/providers/*"
             ],
             "@components/*": [
-                "./components/*"
+                "./src/components/*"
             ]
         }
     },
+    "include": [
+        "src/index.ts"
+    ],
     "exclude": [
         "dist",
         "node_modules",
