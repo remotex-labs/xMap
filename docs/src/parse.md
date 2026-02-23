@@ -1,9 +1,11 @@
 # Parse
-The xMap library provides robust error stack trace parsing capabilities to help you extract structured information 
-from JavaScript error stacks across different JavaScript engines. This document explains how to use the stack trace 
+
+The xMap library provides robust error stack trace parsing capabilities to help you extract structured information
+from JavaScript error stacks across different JavaScript engines. This document explains how to use the stack trace
 parsing functions and understand the parsed data structure.
 
 ## Imports
+
 You can import the ANSI component in two ways:
 
 ```ts
@@ -11,7 +13,8 @@ import { parseErrorStack } from '@remotex-labs/xmap/parser.component';
 ```
 
 ## parseErrorStack
-The `parseErrorStack` function is the main entry point for stack trace parsing in xMap. 
+
+The `parseErrorStack` function is the main entry point for stack trace parsing in xMap.
 
 ```ts
 import { parseErrorStack } from '@remotex-labs/xmap/parser.component';
@@ -31,6 +34,7 @@ try {
 ```
 
 You can also parse a string representation of an error stack:
+
 ```ts
 import { parseErrorStack } from '@remotex-labs/xmap/parser.component';
 
@@ -45,45 +49,53 @@ console.log(parsedStack)
 ```
 
 ### Parsed Stack Structure
+
 The `parseErrorStack` function returns a object with the following properties: `ParsedStackTraceInterface`
+
 - `name`: The error type name (e.g., "Error", "TypeError")
-- `message`: The error message 
+- `message`: The error message
 - `stack`: An array of parsed stack frames (StackFrameInterface objects)
 - `rawStack`: The original unparsed stack trace string
 
 Each stack frame in the `stack` array contains:
-- `source`: The original stack line string 
+
+- `source`: The original stack line string
 - `fileName`: The file path where the error occurred
-- `line`: The line number (if available) 
-- `column`: The column number (if available) 
+- `line`: The line number (if available)
+- `column`: The column number (if available)
 - `functionName`: The function name (if available)
 - `eval`: Boolean indicating if the frame is from evaluated code
 - `native`: Boolean indicating if the frame is from native code
-- `async`: Boolean indicating if the frame is from an async function 
-- `constructor`: Boolean indicating if the frame is from a constructor 
+- `async`: Boolean indicating if the frame is from an async function
+- `constructor`: Boolean indicating if the frame is from a constructor
 - `evalOrigin`: (Optional) If the frame is from evaluated code, contains information about the eval origin
 
 ## Supported JavaScript Engines
+
 The xMap parser recognizes stack traces from three major JavaScript engines:
+
 1. **V8** (Used in Chrome, Node.js, Edge)
 
 ```text
    at functionName (/path/to/file.js:10:15)
 ```
 
-2. **SpiderMonkey** (Used in Firefox)
+1. **SpiderMonkey** (Used in Firefox)
 
 ```ts
    functionName@/path/to/file.js:10:15
 ```
 
-3. **JavaScriptCore** (Used in Safari, WebKit)
+1. **JavaScriptCore** (Used in Safari, WebKit)
+
 ```text
    functionName@/path/to/file.js:10:15
 ```
 
 The parser automatically detects the engine type from the stack format using the `detectJSEngine` function.
+
 ## Stack Frame Properties
+
 Here's a detailed look at the properties available in each parsed stack frame:
 
 | Property | Type | Description |
@@ -100,13 +112,15 @@ Here's a detailed look at the properties available in each parsed stack frame:
 | `evalOrigin` | object | Contains information about the eval origin (if applicable) |
 
 The `evalOrigin` object (present when `eval` is true) includes:
+
 - `fileName`: The file where the eval was called
-- `line`: The line number where the eval was called 
-- `column`: The column number where the eval was called 
+- `line`: The line number where the eval was called
+- `column`: The column number where the eval was called
 - `functionName`: The function that called eval
 
 ## Engine-Specific Parsing
-Each JavaScript engine has a slightly different stack trace format. 
+
+Each JavaScript engine has a slightly different stack trace format.
 The parser handles these differences transparently, but you can also use the engine-specific parsing functions directly:
 
 ```ts
@@ -132,7 +146,9 @@ if (engine === JSEngines.V8) {
 ```
 
 ## Advanced Usage
+
 ### Handling Eval Frames
+
 The parser has special handling for code executed within `eval()`:
 
 ```ts
@@ -151,6 +167,7 @@ try {
 ```
 
 ### Path Normalization
+
 File paths in stack traces are normalized to use consistent separators and handle file URLs:
 
 ```ts
@@ -170,9 +187,11 @@ console.log(path3); // "C:/Users/dev/app.js"
 ```
 
 ## Integration with Other xMap Features
+
 The stack trace parser works seamlessly with other xMap features:
 
 ### With Source Maps
+
 ```ts
 try {
     // Code that throws an error
@@ -207,6 +226,7 @@ try {
 ```
 
 ### With Code Formatting and Highlighting
+
 ```ts
 try {
     // Code that throws an error

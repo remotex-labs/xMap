@@ -353,7 +353,7 @@ describe('parseV8StackLine', () => {
     ];
 
     describe('parseV8StackLine', () => {
-        test.each(testCases)('$description', ({ input, expected }) => {
+        test.each(...testCases)('$description', ({ input, expected }) => {
             const result = parseV8StackLine(input);
 
             expect(result.functionName).toBe(expected.functionName);
@@ -485,7 +485,7 @@ describe('parseV8StackLine', () => {
                 expect(result.evalOrigin.column).toBe(15);
                 expect(result.evalOrigin.functionName).toBe('evalFn');
             } else {
-                fail('evalOrigin should be defined');
+                throw new Error('evalOrigin should be defined');
             }
         });
 
@@ -505,7 +505,7 @@ describe('parseV8StackLine', () => {
                 expect(result.evalOrigin.column).toBe(25);
                 expect(result.evalOrigin.functionName).toBe('<anonymous>');
             } else {
-                fail('evalOrigin should be defined');
+                throw new Error('evalOrigin should be defined');
             }
         });
 
@@ -525,7 +525,7 @@ describe('parseV8StackLine', () => {
                 expect(result.evalOrigin.column).toBe(10);
                 expect(result.evalOrigin.functionName).toBe('runScript');
             } else {
-                fail('evalOrigin should be defined');
+                throw new Error('evalOrigin should be defined');
             }
         });
     });
@@ -639,7 +639,7 @@ describe('parseSpiderMonkeyStackLine', () => {
                 expect(result.evalOrigin.column).toBe(5); // Always 1 in Spider Monkey format
                 expect(result.evalOrigin.functionName).toBe('eval');
             } else {
-                fail('evalOrigin should be defined');
+                throw new Error('evalOrigin should be defined');
             }
         });
 
@@ -658,7 +658,7 @@ describe('parseSpiderMonkeyStackLine', () => {
                 expect(result.evalOrigin.column).toBe(10);
                 expect(result.evalOrigin.functionName).toBe('eval');
             } else {
-                fail('evalOrigin should be defined');
+                throw new Error('evalOrigin should be defined');
             }
         });
 
@@ -677,7 +677,7 @@ describe('parseSpiderMonkeyStackLine', () => {
                 expect(result.evalOrigin.column).toBe(15);
                 expect(result.evalOrigin.functionName).toBe('createFunction');
             } else {
-                fail('evalOrigin should be defined');
+                throw new Error('evalOrigin should be defined');
             }
         });
     });

@@ -13,11 +13,6 @@ import { xterm } from '@remotex-labs/xansi/xterm.component';
 import { formatErrorCode } from '@components/formatter.component';
 import { CodeHighlighter, highlightCode } from '@components/highlighter.component';
 
-/**
- * Mock dependencies
- */
-
-jest.mock('@remotex-labs/xansi');
 
 /**
  * Schema test
@@ -49,7 +44,11 @@ const schema = {
 
 describe('highlightCode', () => {
     beforeEach(() => {
-        jest.restoreAllMocks();
+        xJet.resetAllMocks();
+    });
+
+    afterAll(() => {
+        xJet.restoreAllMocks();
     });
 
     test('should highlight keywords in the code', () => {
@@ -106,12 +105,16 @@ describe('highlightCode', () => {
 
 describe('Process Identifier', () => {
     let highlighter: CodeHighlighter;
-    const mockAddSegment = jest.fn();
+    const mockAddSegment = xJet.fn();
 
     beforeEach(() => {
         highlighter = new CodeHighlighter(<any> {}, '', schema);
         (<any> highlighter).addSegment = mockAddSegment;
-        jest.resetAllMocks();
+        xJet.resetAllMocks();
+    });
+
+    afterAll(() => {
+        xJet.restoreAllMocks();
     });
 
     const testCases = [
@@ -145,8 +148,8 @@ describe('Process Identifier', () => {
     testCases.forEach(({ kind, color }) => {
         test(`should add segment for ${ ts.SyntaxKind[kind] } nodes`, () => {
             const mockNode = {
-                getStart: jest.fn().mockReturnValue(0),
-                getEnd: jest.fn().mockReturnValue(10),
+                getStart: xJet.fn().mockReturnValue(0),
+                getEnd: xJet.fn().mockReturnValue(10),
                 kind: ts.SyntaxKind.Identifier,
                 parent: {
                     kind: kind
@@ -160,14 +163,14 @@ describe('Process Identifier', () => {
 
     test('should add segment with variableColor when parent text matches node text', () => {
         const mockNode = {
-            getStart: jest.fn().mockReturnValue(0),
-            getEnd: jest.fn().mockReturnValue(10),
-            getText: jest.fn().mockReturnValue('propertyAccess'),
+            getStart: xJet.fn().mockReturnValue(0),
+            getEnd: xJet.fn().mockReturnValue(10),
+            getText: xJet.fn().mockReturnValue('propertyAccess'),
             kind: ts.SyntaxKind.Identifier,
             parent: {
                 kind: ts.SyntaxKind.PropertyAccessExpression,
-                getChildAt: jest.fn().mockReturnValue({
-                    getText: jest.fn().mockReturnValue('propertyAccess')
+                getChildAt: xJet.fn().mockReturnValue({
+                    getText: xJet.fn().mockReturnValue('propertyAccess')
                 })
             }
         };
@@ -178,14 +181,14 @@ describe('Process Identifier', () => {
 
     test('should add segment with propertyAccessExpressionColor when parent text does not match node text', () => {
         const mockNode = {
-            getStart: jest.fn().mockReturnValue(0),
-            getEnd: jest.fn().mockReturnValue(10),
-            getText: jest.fn().mockReturnValue('propertyAccess'),
+            getStart: xJet.fn().mockReturnValue(0),
+            getEnd: xJet.fn().mockReturnValue(10),
+            getText: xJet.fn().mockReturnValue('propertyAccess'),
             kind: ts.SyntaxKind.Identifier,
             parent: {
                 kind: ts.SyntaxKind.PropertyAccessExpression,
-                getChildAt: jest.fn().mockReturnValue({
-                    getText: jest.fn().mockReturnValue('differentText')
+                getChildAt: xJet.fn().mockReturnValue({
+                    getText: xJet.fn().mockReturnValue('differentText')
                 })
             }
         };
@@ -197,12 +200,16 @@ describe('Process Identifier', () => {
 
 describe('Process Node', () => {
     let highlighter: CodeHighlighter;
-    const mockAddSegment = jest.fn();
+    const mockAddSegment = xJet.fn();
 
     beforeEach(() => {
         highlighter = new CodeHighlighter(<any> {}, '', schema);
         (<any> highlighter).addSegment = mockAddSegment;
-        jest.resetAllMocks();
+        xJet.resetAllMocks();
+    });
+
+    afterAll(() => {
+        xJet.restoreAllMocks();
     });
 
     const testCases = [
@@ -214,8 +221,8 @@ describe('Process Node', () => {
         test(`should add segment for ${ ts.SyntaxKind[kind] } nodes`, () => {
 
             const mockNode = {
-                getStart: jest.fn().mockReturnValue(0),
-                getEnd: jest.fn().mockReturnValue(10),
+                getStart: xJet.fn().mockReturnValue(0),
+                getEnd: xJet.fn().mockReturnValue(10),
                 kind,
                 name: {
                     text: '1234'
@@ -229,6 +236,10 @@ describe('Process Node', () => {
 });
 
 describe('formatErrorCode', () => {
+    afterAll(() => {
+        xJet.restoreAllMocks();
+    });
+
     test('should format code with error highlight with custom color', () => {
         const code = 'line1\nline2\nline3';
         const sourcePosition = <PositionWithCodeInterface> {
@@ -285,3 +296,4 @@ describe('formatErrorCode', () => {
         expect(() => formatErrorCode(<any> sourcePosition)).toThrow('Invalid line or column number.');
     });
 });
+

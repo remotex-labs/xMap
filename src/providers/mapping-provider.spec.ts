@@ -22,6 +22,10 @@ describe('validateSegment', () => {
         instance = new MappingProvider([]);
     });
 
+    afterAll(() => {
+        xJet.restoreAllMocks();
+    });
+
     test('should not throw an error for valid segment', () => {
         const validSegment: SegmentInterface = {
             line: 1,
@@ -119,6 +123,10 @@ describe('validateMappingString', () => {
         instance = new MappingProvider([]);
     });
 
+    afterAll(() => {
+        xJet.restoreAllMocks();
+    });
+
     test('should return true for a valid encoded source map', () => {
         const validMapping = 'AAAA;AACA;AADA;';
         expect(instance.validateMappingString(validMapping)).toBe(true);
@@ -159,6 +167,10 @@ describe('decodeMappingString', () => {
         instance = new MappingProvider([]);
     });
 
+    afterAll(() => {
+        xJet.restoreAllMocks();
+    });
+
     test('should decode valid mapping string and populate mapping array', () => {
         const encodedMap = 'AAAA;AACA;AADA;';
         instance['decodeMappingString'](encodedMap, namesOffset, sourceOffset);
@@ -188,7 +200,7 @@ describe('decodeMappingString', () => {
 
     test('should throw an error when decoding fails', () => {
         const encodedMap = 'AAAA;AACA;AADA;';
-        jest.spyOn(instance, 'decodedSegment').mockImplementationOnce(() => {
+        xJet.spyOn(instance, 'decodedSegment').mockImplementationOnce(() => {
             throw new Error('Decoding error');
         });
 
@@ -203,7 +215,11 @@ describe('decodeMappingArray', () => {
 
     beforeEach(() => {
         instance = new MappingProvider([]);
-        jest.spyOn(instance, <any> 'validateSegment');
+        xJet.spyOn(instance, <any> 'validateSegment');
+    });
+
+    afterAll(() => {
+        xJet.restoreAllMocks();
     });
 
     test('should decode and push valid mapping array with offsets', () => {
@@ -250,7 +266,7 @@ describe('decodeMappingArray', () => {
     });
 
     test('should throw error when segment is invalid', () => {
-        jest.spyOn(instance, 'validateSegment').mockImplementation(() => {
+        xJet.spyOn(instance, 'validateSegment').mockImplementation(() => {
             throw new Error('Invalid segment');
         });
 
@@ -267,10 +283,14 @@ describe('encodeMappings', () => {
 
     beforeEach(() => {
         instance = new MappingProvider([]);
-        jest.spyOn(instance, 'initPositionOffsets').mockReturnValue({
+        xJet.spyOn(instance, 'initPositionOffsets').mockReturnValue({
             generatedColumn: 0
         });
-        jest.spyOn(instance, 'encodeSegment');
+        xJet.spyOn(instance, 'encodeSegment');
+    });
+
+    afterAll(() => {
+        xJet.restoreAllMocks();
     });
 
     test('should encode valid mapping array', () => {
@@ -283,7 +303,7 @@ describe('encodeMappings', () => {
             [{ generatedColumn: 7, sourceIndex: 8, generatedLine: 9 }]
         ];
 
-        jest.spyOn(instance, 'encodeSegment').mockImplementation((positionOffset, segment: any) => {
+        xJet.spyOn(instance, 'encodeSegment').mockImplementation((positionOffset, segment: any) => {
             return `encoded(${ segment.generatedColumn },${ segment.sourceIndex })`;
         });
 
@@ -300,7 +320,7 @@ describe('encodeMappings', () => {
             []
         ];
 
-        jest.spyOn(instance, 'encodeSegment').mockImplementation(() => 'encoded');
+        xJet.spyOn(instance, 'encodeSegment').mockImplementation(() => 'encoded');
         const result = instance.encodeMappings(map);
         expect(result).toBe(';');
     });
@@ -308,7 +328,7 @@ describe('encodeMappings', () => {
     test('should handle single frame with single segment', () => {
         const map: MapType = <any> [[{ generatedColumn: 1, sourceIndex: 2, generatedLine: 3 }]];
 
-        jest.spyOn(instance, 'encodeSegment').mockImplementation((positionOffset, segment: any) => {
+        xJet.spyOn(instance, 'encodeSegment').mockImplementation((positionOffset, segment: any) => {
             return `encoded(${ segment.generatedColumn },${ segment.sourceIndex })`;
         });
 
@@ -324,7 +344,7 @@ describe('encodeMappings', () => {
             ]
         ];
 
-        jest.spyOn(instance, 'encodeSegment').mockImplementation((positionOffset, segment: any) => {
+        xJet.spyOn(instance, 'encodeSegment').mockImplementation((positionOffset, segment: any) => {
             return `encoded(${ segment.generatedColumn },${ segment.sourceIndex })`;
         });
 
@@ -340,11 +360,11 @@ describe('encodeMappings', () => {
 
         const positionOffsets = { generatedColumn: 0 };
 
-        jest.spyOn(instance, 'encodeSegment').mockImplementation((positionOffset, segment: any) => {
+        xJet.spyOn(instance, 'encodeSegment').mockImplementation((positionOffset, segment: any) => {
             return `encoded(${ segment.generatedColumn },${ segment.sourceIndex })`;
         });
 
-        const initPositionSpy = jest.spyOn(instance, 'initPositionOffsets').mockReturnValue(positionOffsets);
+        const initPositionSpy = xJet.spyOn(instance, 'initPositionOffsets').mockReturnValue(positionOffsets);
         instance.encodeMappings(map);
 
         expect(initPositionSpy).toHaveBeenCalledTimes(1);
@@ -367,6 +387,10 @@ describe('getSegment', () => {
                 { line: 1, column: 9, nameIndex: null, sourceIndex: 4, generatedLine: 2, generatedColumn: 8 }
             ]
         ], 0, 0);
+    });
+
+    afterAll(() => {
+        xJet.restoreAllMocks();
     });
 
     test('should return null when no segments exist for the line', () => {
@@ -476,6 +500,10 @@ describe('getOriginalSegment', () => {
         ]);
     });
 
+    afterAll(() => {
+        xJet.restoreAllMocks();
+    });
+
     test('should return null when no segments exist for the sourceIndex and line', () => {
         const result = instance.getOriginalSegment(4, 5, 3);
         expect(result).toBeNull();
@@ -564,6 +592,10 @@ describe('encode', () => {
         instance = new MappingProvider([]);
     });
 
+    afterAll(() => {
+        xJet.restoreAllMocks();
+    });
+
     test('should return encoded mappings string', () => {
         const mockMapping = [
             [{ generatedColumn: 0, sourceIndex: 0, line: 1, column: 1, nameIndex: null }],
@@ -571,8 +603,8 @@ describe('encode', () => {
         ];
 
         instance.mapping = mockMapping;
-        const encodedString = 'encodedString';
-        jest.spyOn(instance, 'encodeMappings').mockReturnValue(encodedString);
+        const encodedString: any = 'encodedString';
+        xJet.spyOn(instance, 'encodeMappings').mockReturnValue(encodedString);
         const result = instance.encode();
 
         expect(result).toBe(encodedString);
@@ -581,7 +613,7 @@ describe('encode', () => {
 
     test('should return empty string for empty mapping', () => {
         instance.mapping = [];
-        jest.spyOn(instance, 'encodeMappings');
+        xJet.spyOn(instance, 'encodeMappings');
         const result = instance.encode();
 
         expect(result).toBe('');
@@ -595,8 +627,8 @@ describe('encode', () => {
         ];
 
         instance.mapping = mockMapping;
-        const encodedString = 'encodedWithNull';
-        jest.spyOn(instance, 'encodeMappings').mockReturnValue(encodedString);
+        const encodedString: any = 'encodedWithNull';
+        xJet.spyOn(instance, 'encodeMappings').mockReturnValue(encodedString);
         const result = instance.encode();
 
         expect(result).toBe(encodedString);
@@ -609,6 +641,10 @@ describe('encodeSegment', () => {
 
     beforeEach(() => {
         instance = new MappingProvider([]);
+    });
+
+    afterAll(() => {
+        xJet.restoreAllMocks();
     });
 
     test('should encode segment without nameIndex correctly', () => {
@@ -744,12 +780,16 @@ describe('decode', () => {
     beforeEach(() => {
         instance = new MappingProvider('AAAA');
 
-        jest.spyOn(instance as any, 'decodeMappingArray').mockImplementation(() => {});
-        jest.spyOn(instance as any, 'decodeMappingString').mockImplementation(() => {});
+        xJet.spyOn(instance as any, 'decodeMappingArray').mockImplementation(() => {});
+        xJet.spyOn(instance as any, 'decodeMappingString').mockImplementation(() => {});
     });
 
     afterEach(() => {
-        jest.clearAllMocks();
+        xJet.resetAllMocks();
+    });
+
+    afterAll(() => {
+        xJet.restoreAllMocks();
     });
 
     test('should call decodeMappingArray when mapping is an array', () => {

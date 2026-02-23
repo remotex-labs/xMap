@@ -7,6 +7,7 @@ outline: deep
 `xMap` is a TypeScript library for working with source maps, stack trace parsing, and code formatting. It provides powerful tools for debugging, error reporting, and code visualization in CLI environments.
 
 ## Features
+
 - **Source Map Processing**: Parse, manipulate, and query source maps
 - **Stack Trace Parsing**: Parse error stacks from V8, SpiderMonkey, and JavaScriptCore engines
 - **Code Formatting**: Display code with line numbers and custom highlighting
@@ -14,16 +15,21 @@ outline: deep
 - **Error Visualization**: Format code snippets with error indicators
 
 ## Installation
+
 To install the package, use npm or yarn:
+
 ```bash
 npm install @remotex-labs/xmap
 ```
+
 or
+
 ```bash
 yarn add @remotex-labs/xmap
 ```
 
 ## Optimizing Bundle Size
+
 xMap supports subpath imports, allowing you to import only the specific components you need:
 
 ```ts
@@ -35,7 +41,9 @@ import { SourceService } from '@remotex-labs/xmap';
 ```
 
 ## Key Components
+
 ### SourceService
+
 Process and query source maps to get original positions, concatenate maps, and retrieve code snippets.
 
 ```ts
@@ -55,12 +63,15 @@ const positionWithCode = sourceService.getPositionWithCode(12, 34, Bias.LOWER_BO
 ```
 
 #### Understanding Bias
+
 When querying source maps, the parameter controls how positions are matched: `Bias`
+
 - `Bias.BOUND` - No directional preference; returns the first match found
 - `Bias.LOWER_BOUND` - Prefers segments with column values ≤ the target
 - `Bias.UPPER_BOUND` - Prefers segments with column values ≥ the target `Bias.UPPER_BOUND`
 
 Example:
+
 ```ts
 // Using different bias values for position lookup
 const exactPosition = sourceService.getPosition(10, 15, Bias.BOUND);
@@ -69,6 +80,7 @@ const afterPosition = sourceService.getPosition(10, 15, Bias.UPPER_BOUND);
 ```
 
 ### Stack Trace Parser
+
 Parse error stack traces from different JavaScript engines into a structured format.
 
 ```ts
@@ -92,6 +104,7 @@ try {
 ```
 
 ### Code Highlighter
+
 Apply semantic syntax highlighting to TypeScript code.
 
 ```ts
@@ -118,7 +131,9 @@ console.log(customHighlightedCode)
 ```
 
 ![image](/images/code.png)
+
 ## formatCode
+
 The `formatCode` function formats a given code snippet, adding line numbers with customizable padding and enabling specific actions for particular lines.
 This utility is useful for displaying code snippets in a user-friendly manner, particularly in documentation or debugging scenarios.
 
@@ -148,6 +163,7 @@ const formattedCode = formatCode(highlightCode(code), {
 
 console.log(formattedCode);
 ```
+
 ![image](/images/formatCode.png)
 
 ```ts
@@ -178,6 +194,7 @@ console.log(formattedError)
 ![image](/images/formatErrorCode.png)
 
 ## Practical Examples
+
 ### Working with Source Maps and Errors
 
 ```ts
@@ -233,8 +250,12 @@ const sourceMapJSON = `
   "version": 3,
   "sources": ["../src/core/core.component.ts", "../src/index.ts"],
   "sourceRoot": "https://github.com/remotex-lab/xmap/tree/test/",
-  "sourcesContent": ["export class CoreModule {\\r\\n    private name: string;\\r\\n\\r\\n    constructor(name: string) {\\r\\n        this.name = name;\\r\\n    }\\r\\n\\r\\n    public greet(): string {\\r\\n        return \`Hello from \${ this.name }!\`;\\r\\n    }\\r\\n}", "import { CoreModule } from '@core/core.component';\\r\\n\\r\\nconst coreInstance = new CoreModule('Core Module');\\r\\n\\r\\nconsole.log(coreInstance.greet());"],
-  "mappings": "aAAO,IAAMA,EAAN,KAAiB,CACZ,KAER,YAAYC,EAAc,CACtB,KAAK,KAAOA,CAChB,CAEO,OAAgB,CACnB,MAAO,cAAc,KAAK,IAAI,GAClC,CACJ,ECRA,IAAMC,EAAe,IAAIC,EAAW,aAAa,EAEjD,QAAQ,IAAID,EAAa,MAAM,CAAC",
+  "sourcesContent": [
+    "export class CoreModule {\\r\\n  private name: string;\\r\\n}",
+    "import { CoreModule } from '@core/core.component';\\r\\nconsole.log(new CoreModule('Core Module'));"
+  ],
+  "mappings":
+    "aAAO,IAAMA,EAAN,KAAiB,CACZ,KAER,YAAYC,EAAc,CACtB,KAAK,KAAOA,CAChB,CAEO,OAAgB,CACnB,MAAO,cAAc,KAAK,IAAI,GAClC,CACJ,ECRA,IAAMC,EAAe,IAAIC,EAAW,aAAa,EAEjD,QAAQ,IAAID,EAAa,MAAM,CAAC",
   "names": ["CoreModule", "name", "coreInstance", "CoreModule"]
 }
 `;
