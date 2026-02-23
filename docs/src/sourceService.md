@@ -1,7 +1,7 @@
 # Source-service
 
 A TypeScript service for validating and processing source maps.
-The `SourceService` class provides functionality for parsing and manipulating source maps, 
+The `SourceService` class provides functionality for parsing and manipulating source maps,
 including retrieving position mappings, concatenating source maps, and getting code snippets based on mappings.
 
 ```ts
@@ -21,6 +21,7 @@ const snippet = sourceService.getPositionWithCode(10, 15, Bias.BOUND, {
 ```
 
 ## SourceService Instance
+
 You can create a instance using various input formats: `SourceService`
 
 ### From a JSON String
@@ -40,6 +41,7 @@ const sourceService = new SourceService(sourceMapJSON);
 ```
 
 ### From a Source Map Object
+
 ```ts
 import { SourceService } from '@remotex-labs/xmap';
 
@@ -55,12 +57,15 @@ const sourceService = new SourceService(sourceMapObj);
 ```
 
 ### Copying from Another SourceService
+
 ```ts
 const newSourceService = new SourceService(existingSourceService);
 ```
 
 ## Retrieving Position Information
+
 ### From Generated Code
+
 To find the original source location for a position in generated code:
 
 ```ts
@@ -79,6 +84,7 @@ if (position) {
 :::
 
 ### From Original Source
+
 To find the generated code location for a position in the original source:
 
 ```ts
@@ -92,7 +98,8 @@ if (position) {
 ```
 
 ## Working with Code Snippets
-The and `getPositionWithCode` and `getPositionWithContent` methods allow you to retrieve not just position information 
+
+The and `getPositionWithCode` and `getPositionWithContent` methods allow you to retrieve not just position information
 but also the associated source code:
 
 ```ts
@@ -116,7 +123,9 @@ ${posWithCode.code}`);
 ```
 
 ## Source Map Manipulation
+
 ### Concatenating Source Maps
+
 You can combine multiple source maps using the method: `concat`
 
 ```ts
@@ -128,6 +137,7 @@ const combinedService = sourceService.concatNewMap(map1, map2, map3);
 ```
 
 ### Converting to JSON
+
 ```ts
 // Get the source map as a plain object
 const mapObject = sourceService.getMapObject();
@@ -135,7 +145,9 @@ const mapObject = sourceService.getMapObject();
 // Get the source map as a JSON string
 const jsonString = sourceService.toString();
 ```
+
 ## API Reference
+
 ### Constructor
 
 ```ts
@@ -146,6 +158,7 @@ constructor(source: SourceService | SourceMapInterface | string, file?: string |
 - `file`: Optional file name for the generated bundle
 
 ### Properties
+
 - `file`: The name of the generated file this source map applies to
 - `mappings`: Provider for accessing and manipulating the base64 VLQ-encoded mappings
 - `sourceRoot`: The root URL for resolving relative paths in the source files
@@ -154,14 +167,16 @@ constructor(source: SourceService | SourceMapInterface | string, file?: string |
 - `sourcesContent`: Array of source file contents
 
 ### Methods
+
 #### Position Mapping
+
 - `getPosition(line: number, column: number, bias?: Bias): PositionInterface | null`
 - `getPositionByOriginal(line: number, column: number, sourceIndex: number | string, bias?: Bias): PositionInterface | null`
 - `getPositionWithContent(line: number, column: number, bias?: Bias): PositionWithContentInterface | null`
 - `getPositionWithCode(line: number, column: number, bias?: Bias, options?: SourceOptionsInterface): PositionWithCodeInterface | null`
 
-
 #### Map Manipulation
+
 - `getMapObject(): SourceMapInterface`
 - `concat(...maps: Array<SourceMapInterface | SourceService>): void`
 - `concatNewMap(...maps: Array<SourceMapInterface | SourceService>): SourceService`
@@ -169,12 +184,13 @@ constructor(source: SourceService | SourceMapInterface | string, file?: string |
 
 ## Bias
 
-When using the `SourceService` class to query source maps, you'll encounter the `Bias` 
-enum which plays a crucial role in determining how positions are matched 
+When using the `SourceService` class to query source maps, you'll encounter the `Bias`
+enum which plays a crucial role in determining how positions are matched
 when an exact position isn't found in the mapping data.
 
 ### What is Bias
-The `Bias` enum is a parameter used in methods like `getPosition()`, `getPositionByOriginal()`, and `getPositionWithCode()` 
+
+The `Bias` enum is a parameter used in methods like `getPosition()`, `getPositionByOriginal()`, and `getPositionWithCode()`
 to control the matching behavior when an exact position match isn't available in the source map.
 
 ```ts
@@ -189,6 +205,7 @@ enum Bias {
 ### `Bias.BOUND`
 
 `Bias.BOUND` is the default option when no bias is specified. It has no directional preference, meaning: `Bias.BOUND`
+
 - When searching for a mapping and there's no exact match at the specified position
 - The first suitable match that's found will be returned, regardless of whether it's before or after the target position
 - This is a good general-purpose option when you have no specific preference
@@ -202,7 +219,9 @@ const position = sourceService.getPosition(10, 15, Bias.BOUND);
 ```
 
 ### `Bias.LOWER_BOUND`
+
 `Bias.LOWER_BOUND` prefers segments with positions that come before or exactly at the specified position:
+
 - When an exact match is not found, it will return the mapping for the closest position that is less than or equal to the target
 - This is useful when you want to find "where this code came from" in cases where every character isn't mapped
 - It's like saying "show me the nearest mapping that's at or before this position"
@@ -213,7 +232,9 @@ const position = sourceService.getPosition(10, 15, Bias.LOWER_BOUND);
 ```
 
 ### `Bias.UPPER_BOUND`
+
 `Bias.UPPER_BOUND` prefers segments with positions that come after or exactly at the specified position:
+
 - When an exact match is not found, it will return the mapping for the closest position that is greater than or equal to the target
 - This is useful when you want to find "what generated code corresponds to this original code" in sparse mappings
 - It's like saying "show me the nearest mapping that's at or after this position"
@@ -224,11 +245,13 @@ const position = sourceService.getPosition(10, 15, Bias.UPPER_BOUND);
 ```
 
 ### When to Use Different Bias Values
+
 - **Use (default)`Bias.BOUND`** when you have no specific preference and just want any relevant match
 - **Use `Bias.LOWER_BOUND`** when debugging minified code and want to find what original source code generated a particular point in the output
 - **Use `Bias.UPPER_BOUND`** when you want to make sure you capture the mapping for code that might appear slightly after your target position
 
 ### Practical Example
+
 Consider a scenario where you're trying to find the source of an error in minified code:
 
 ```ts
@@ -242,10 +265,11 @@ const errorPosition = sourceService.getPositionWithCode(1, 104, Bias.LOWER_BOUND
 // even if the exact character position isn't mapped
 ```
 
-n this case, using `Bias.LOWER_BOUND` ensures you get the mapping for the code segment that most likely contains the error, 
+n this case, using `Bias.LOWER_BOUND` ensures you get the mapping for the code segment that most likely contains the error,
 even if the exact character position isn't mapped in the source map.
 
 ### Visual Representation
+
 Think of it like this:
 
 ```text
@@ -260,12 +284,12 @@ Positions:         1           2
 ```
 
 - If you query for a position between 1 and 2:
-    - : Could return either position 1 or 2 `Bias.BOUND`
-    - : Will return position 1 `Bias.LOWER_BOUND`
-    - : Will return position 2 `Bias.UPPER_BOUND`
-
+  - : Could return either position 1 or 2 `Bias.BOUND`
+  - : Will return position 1 `Bias.LOWER_BOUND`
+  - : Will return position 2 `Bias.UPPER_BOUND`
 
 ## Examples
+
 ### Finding Error Locations
 
 ```ts
@@ -295,6 +319,7 @@ if (errorPos) {
 ```
 
 ### Working with Multiple Source Maps
+
 ```ts
 import { SourceService } from '@remotex-labs/xmap';
 
@@ -310,6 +335,7 @@ const position = combinedService.getPosition(errorLine, errorColumn);
 ```
 
 ### Extracting Code Snippets
+
 ```ts
 import { SourceService, Bias } from '@remotex-labs/xmap';
 import { formatCode } from '@remotex-labs/xmap/formatter.component';

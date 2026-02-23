@@ -1,10 +1,11 @@
 # Highlighter
 
-The xMap library provides powerful code highlighting capabilities that bring your TypeScript code 
-snippets to life with semantic syntax highlighting. This document covers the highlighter component, 
+The xMap library provides powerful code highlighting capabilities that bring your TypeScript code
+snippets to life with semantic syntax highlighting. This document covers the highlighter component,
 focusing on `highlightCode` the function and underlying mechanisms.
 
 ## Imports
+
 You can import the ANSI component in two ways:
 
 ```ts
@@ -12,7 +13,8 @@ import { highlightCode } from '@remotex-labs/xmap/highlighter.component';
 ```
 
 ## highlightCode
-The `highlightCode` function is the main entry point for syntax highlighting in xMap. 
+
+The `highlightCode` function is the main entry point for syntax highlighting in xMap.
 
 ```ts
 import { highlightCode } from '@remotex-labs/xmap/highlighter.component';
@@ -30,6 +32,7 @@ console.log(highlightedCode);
 The function returns the same code string but with ANSI color codes inserted to highlight different syntax elements.
 
 ### Custom Color Schemes
+
 You can customize the highlighting by providing a partial color scheme:
 
 ```ts
@@ -57,7 +60,9 @@ Output:
 ![image](/images/code.png)
 
 ## How the Highlighter Works
+
 The highlighter works by:
+
 1. Parsing the TypeScript code into an Abstract Syntax Tree (AST)
 2. Walking through the AST nodes
 3. Identifying different code elements based on their syntax kind
@@ -67,25 +72,27 @@ The highlighter works by:
 This approach provides accurate, semantic-based highlighting that understands the actual structure of your code.
 
 ## Default Color Scheme
+
 The default color scheme highlights different code elements with distinct colors:
 
-| Element | Description | Default Color |
-| --- | --- | --- |
-| Keywords | Reserved words like `function`, `const`, `return` | Light coral |
-| Types | Type annotations and references | Light goldenrod yellow |
-| Classes | Class declarations and references | Light orange |
-| Interfaces | Interface declarations | Light goldenrod yellow |
-| Strings | String literals | Olive green |
-| Numbers | Numeric literals | Light gray |
-| Functions | Function and method declarations | Light orange |
-| Variables | Variable declarations and references | Burnt orange |
-| Parameters | Function parameters | Deep orange |
-| Comments | Code comments | Dark gray |
-| Regular Expressions | Regex literals | Olive green |
-| Properties | Object property access | Light yellow |
+| Element             | Description                                       | Default Color          |
+|---------------------|---------------------------------------------------|------------------------|
+| Keywords            | Reserved words like `function`, `const`, `return` | Light coral            |
+| Types               | Type annotations and references                   | Light goldenrod yellow |
+| Classes             | Class declarations and references                 | Light orange           |
+| Interfaces          | Interface declarations                            | Light goldenrod yellow |
+| Strings             | String literals                                   | Olive green            |
+| Numbers             | Numeric literals                                  | Light gray             |
+| Functions           | Function and method declarations                  | Light orange           |
+| Variables           | Variable declarations and references              | Burnt orange           |
+| Parameters          | Function parameters                               | Deep orange            |
+| Comments            | Code comments                                     | Dark gray              |
+| Regular Expressions | Regex literals                                    | Olive green            |
+| Properties          | Object property access                            | Light yellow           |
 
 ## Custom Highlighting Examples
-**Example 1: Minimal Theme**
+
+### Example 1: Minimal Theme
 
 ```ts
 import { highlightCode } from '@remotex-labs/xmap/highlighter.component';
@@ -108,7 +115,8 @@ console.log(highlighted);
 
 ```
 
-**Example 2: High Contrast Theme**
+### Example 2: High Contrast Theme
+
 ```ts
 const highContrastTheme = {
     keywordColor: (text: string): string => `\x1b[97;45m${ text }\x1b[0m`,     // White on purple
@@ -122,7 +130,8 @@ const highlighted = highlightCode(code, highContrastTheme);
 console.log(highlighted);
 ```
 
-**Example 3: Using xterm Colors**
+### Example 3: Using xterm Colors
+
 ```ts
 
 const colorfulTheme = {
@@ -138,6 +147,7 @@ console.log(highlighted)
 ```
 
 ## Integration with Other xMap Features
+
 The highlightCode function works seamlessly with other xMap features:
 **With formatCode:**
 
@@ -162,6 +172,7 @@ console.log(formattedCode);
 ```
 
 **With formatErrorCode:**
+
 ```ts
 import { formatErrorCode } from '@remotex-labs/xmap/formatter.component';
 import { highlightCode } from '@remotex-labs/xmap/highlighter.component';
@@ -193,6 +204,7 @@ const formattedError = fo
 ```
 
 **With SourceService:**
+
 ```ts
 import { formatErrorCode } from '@remotex-labs/xmap/formatter.component';
 import { highlightCode } from '@remotex-labs/xmap/highlighter.component';
@@ -211,6 +223,7 @@ if (errorPosition) {
 ```
 
 ## Advanced Usage
+
 For more advanced use cases, you can directly use the `CodeHighlighter` class:
 
 ```ts

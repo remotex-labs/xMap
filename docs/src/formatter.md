@@ -1,9 +1,11 @@
 # Formatter
-The xMap library provides powerful code formatting utilities that make it easier to display code snippets 
-with line numbers, custom highlighting, and error indicators. This document covers two main formatting functions: 
+
+The xMap library provides powerful code formatting utilities that make it easier to display code snippets
+with line numbers, custom highlighting, and error indicators. This document covers two main formatting functions:
 `formatCode` and `formatErrorCode`.
 
 ## Imports
+
 You can import the ANSI component in two ways:
 
 ```ts
@@ -11,12 +13,14 @@ import { formatCode } from '@remotex-labs/xmap/formatter.component';
 ```
 
 ## formatCode
+
 The `formatCode` function formats source code snippets with line numbers and optional custom formatting for specific lines.
 This is particularly useful for displaying code in documentation, error messages, or debugging output.
 
 ![image](/images/formatCode.png)
 
-### Basic Usage
+### Basic Usage for `formatErrorCode`
+
 ```ts
 import { formatCode } from '@remotex-labs/xmap/formatter.component';
 
@@ -29,6 +33,7 @@ console.log(formatted);
 ```
 
 Output:
+
 ```text
          1 | function sum(a, b) {
          2 |   return a + b;
@@ -36,7 +41,8 @@ Output:
 ```
 
 ### Configuration Options
-The `formatCode` function accepts an options object with the following properties: 
+
+The `formatCode` function accepts an options object with the following properties:
 
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -45,6 +51,7 @@ The `formatCode` function accepts an options object with the following propertie
 | `action` | object | undefined | Custom action for specific lines |
 
 ### Custom Line Actions
+
 You can apply custom formatting to specific lines using the option: `action`
 
 ```ts
@@ -62,11 +69,13 @@ formatCode(code, {
 ```
 
 The callback function receives:
-- `lineString`: The formatted line string with padding and line number 
-- `padding`: The current padding value 
+
+- `lineString`: The formatted line string with padding and line number
+- `padding`: The current padding value
 - `lineNumber`: The current line number
 
-### Examples
+### `formatErrorCode` Examples
+
 **Basic formatting with custom padding:**
 
 ```ts
@@ -89,6 +98,7 @@ console.log(formatted);
 ```
 
 Output:
+
 ```text
   1 | 
   2 | function greet(name) {
@@ -99,6 +109,7 @@ Output:
 ```
 
 **Adding custom line formatting:**
+
 ```ts
 import { formatCode } from '@remotex-labs/xmap/formatter.component';
 
@@ -125,6 +136,7 @@ console.log(formatted);
 ```
 
 Output:
+
 ```text
     1 |
     2 | function greet(name) {
@@ -137,10 +149,12 @@ Output:
 ```
 
 ## formatErrorCode
-The `formatErrorCode` function is specialized for highlighting errors in code snippets. 
+
+The `formatErrorCode` function is specialized for highlighting errors in code snippets.
 It formats the code and adds a visual indicator (caret symbol `^`) pointing to the exact error location.
 
 ### Basic Usage
+
 ```text
 import { formatErrorCode } from '@remotex-labs/xmap/formatter.component';
 
@@ -163,6 +177,7 @@ console.log(formatted);
 ```
 
 Output:
+
 ```text
       1 | const x = 1;
     > 2 | const y = x.undefined;
@@ -171,6 +186,7 @@ Output:
 ```
 
 ### Customizing Error Indicators
+
 You can customize the appearance of error indicators using ANSI color codes:
 
 ```ts
@@ -182,15 +198,16 @@ const formatted = formatErrorCode(sourcePosition, ansiOption);
 ```
 
 The object allows: `ansiOption`
-- `color`: Function that applies color to the error indicator 
-- `reset`: String to reset formatting (optional)
 
+- `color`: Function that applies color to the error indicator
+- `reset`: String to reset formatting (optional)
 
 ::: tip
 :tada: You can use `xterm.red` as color @see [xAnsi](https://remotex-labs.github.io/xAnsi/)
 :::
 
 ### Examples
+
 **Basic error highlighting:**
 
 ```ts
@@ -220,6 +237,7 @@ console.log(formatted);
 ```
 
 Output:
+
 ```text
       1 | function divide(a, b) {
     > 2 |   if (b === 0) {
@@ -231,6 +249,7 @@ Output:
 ```
 
 **With custom ANSI colors:**
+
 ```ts
 import { xterm } from '@remotex-labs/xansi/xterm.component';
 import { formatErrorCode } from '@remotex-labs/xmap/formatter.component';
@@ -264,6 +283,7 @@ console.log(formatted);
 ```
 
 ## Combining with Other xMap Features
+
 The formatting functions work particularly well when combined with other xMap features:
 **With syntax highlighting:**
 
@@ -287,6 +307,7 @@ console.log(formatted);
 ```
 
 **With source maps and error reporting:**
+
 ```ts
 import { SourceService } from '@remotex-labs/xmap';
 import { formatErrorCode } from '@remotex-labs/xmap/formatter.component';
