@@ -2,7 +2,7 @@
  * Import will remove at compile time
  */
 
-import type { PositionInterface, SourceMapInterface } from '@services/interfaces/source-service.interface';
+import type { SourceMapInterface } from '@services/interfaces/source-service.interface';
 
 /**
  * Imports
@@ -70,7 +70,7 @@ describe('SourceService', () => {
 
     describe('decodeMappings', () => {
         afterEach(() => {
-            jest.restoreAllMocks();
+            xJet.restoreAllMocks();
         });
 
         test('should throw an error if decoding fails', () => {
@@ -90,7 +90,7 @@ describe('SourceService', () => {
 
     describe('getSourcePosition', () => {
         afterEach(() => {
-            jest.restoreAllMocks();
+            xJet.restoreAllMocks();
         });
 
         test('should return source code in right position of and error', () => {
@@ -103,7 +103,7 @@ describe('SourceService', () => {
             };
 
             const service = new SourceService(sourceMap);
-            const mockGetSegment = jest.spyOn(service.mappings, 'getOriginalSegment');
+            const mockGetSegment = xJet.spyOn(service.mappings, 'getOriginalSegment');
             const position = service.getPositionByOriginal(3, 11, 'x.spec.ts');
 
             expect(mockGetSegment).toHaveBeenCalledWith(3, 11, 0, Bias.BOUND);
@@ -129,7 +129,7 @@ describe('SourceService', () => {
             };
 
             const service = new SourceService(sourceMap);
-            const mockGetSegment = jest.spyOn(service.mappings, 'getSegment');
+            const mockGetSegment = xJet.spyOn(service.mappings, 'getSegment');
             const position = service.getPositionWithCode(5, 1, 0, {});
 
             expect(mockGetSegment).toHaveBeenCalledWith(5, 1, 0);
@@ -159,7 +159,7 @@ describe('SourceService', () => {
             };
 
             const service = new SourceService(sourceMap);
-            const mockGetSegment = jest.spyOn(service.mappings, 'getSegment');
+            const mockGetSegment = xJet.spyOn(service.mappings, 'getSegment');
             const position = service.getPositionWithContent(10, 5);
 
             expect(position).toBeNull();
@@ -169,8 +169,8 @@ describe('SourceService', () => {
 
     describe('getPosition', () => {
         afterEach(() => {
-            jest.resetAllMocks();
-            jest.restoreAllMocks();
+            xJet.resetAllMocks();
+            xJet.restoreAllMocks();
         });
 
         let mockSourceMap;
@@ -194,7 +194,7 @@ describe('SourceService', () => {
         });
 
         test('should use specified bias when provided', () => {
-            const retrieveMappingSpy = jest.spyOn(sourceService.mappings, 'getSegment').mockReturnValue({
+            const retrieveMappingSpy = xJet.spyOn(sourceService.mappings, 'getSegment').mockReturnValue({
                 line: 1,
                 column: 2,
                 nameIndex: 0,
@@ -206,7 +206,7 @@ describe('SourceService', () => {
             const position = sourceService.getPosition(1, 2, Bias.UPPER_BOUND);
 
             expect(retrieveMappingSpy).toHaveBeenCalledWith(1, 2, Bias.UPPER_BOUND);
-            expect(position).toEqual<PositionInterface>({
+            expect(position).toEqual({
                 line: 1,
                 column: 2,
                 name: 'name1',
@@ -220,7 +220,7 @@ describe('SourceService', () => {
 
 
         test('should use specified bias when provided with original line and column', () => {
-            const retrieveMappingSpy = jest.spyOn(sourceService.mappings, 'getSegment').mockReturnValue({
+            const retrieveMappingSpy = xJet.spyOn(sourceService.mappings, 'getSegment').mockReturnValue({
                 line: 1,
                 column: 2,
                 nameIndex: 0,
@@ -232,7 +232,7 @@ describe('SourceService', () => {
             const position = sourceService.getPosition(1, 2, Bias.LOWER_BOUND);
 
             expect(retrieveMappingSpy).toHaveBeenCalledWith(1, 2, Bias.LOWER_BOUND);
-            expect(position).toEqual<PositionInterface>({
+            expect(position).toEqual({
                 line: 1,
                 column: 2,
                 name: 'name1',
@@ -247,7 +247,7 @@ describe('SourceService', () => {
 
     describe('concat', () => {
         afterEach(() => {
-            jest.restoreAllMocks();
+            xJet.restoreAllMocks();
         });
 
         test('should merge multiple source maps into the current source map object', () => {
@@ -369,7 +369,7 @@ describe('SourceService', () => {
 
     describe('getMapObject', () => {
         afterEach(() => {
-            jest.restoreAllMocks();
+            xJet.restoreAllMocks();
         });
 
         test('should return a SourceMapInterface object', () => {
