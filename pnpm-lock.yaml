@@ -19,8 +19,8 @@ importers:
         specifier: ^2.1.5
         version: 2.1.5
       '@remotex-labs/xjet':
-        specifier: ^1.5.0
-        version: 1.5.2
+        specifier: ^1.5.4
+        version: 1.5.4
       '@types/node':
         specifier: ^25.3.0
         version: 25.3.0
@@ -324,8 +324,8 @@ packages:
     resolution: {integrity: sha512-RbQmUesOr/iJDCui1LpQE+kIGDu6JOTbHwsOS0wpJyBfuWBTm4Rnl9eAYG2Abqceq/8It/Sp7zpabrOrAUxzcg==}
     engines: {node: '>=20'}
 
-  '@remotex-labs/xjet@1.5.2':
-    resolution: {integrity: sha512-b2upvHWlJWYY1f3Jtfe/JCNO+x1ht9ZMT9xaFr5s6F4w7gZKQR5rsnhwoSLtNohX2S3IeEkpLMJL8b44mQ6z3w==}
+  '@remotex-labs/xjet@1.5.4':
+    resolution: {integrity: sha512-1N0PMYx3xztCbh2t6k6KD7TV03GgtQwf1zRyd58uHZAjJzlQH1c60X/Lk6KGNJrRNya6V5hqE6oTPbG88TU1cg==}
     engines: {node: '>=20'}
     hasBin: true
 
@@ -1859,7 +1859,7 @@ snapshots:
     dependencies:
       '@remotex-labs/xansi': 1.3.3
 
-  '@remotex-labs/xjet@1.5.2':
+  '@remotex-labs/xjet@1.5.4':
     dependencies:
       '@remotex-labs/xansi': 1.3.3
       '@remotex-labs/xjet-expect': 2.1.4
