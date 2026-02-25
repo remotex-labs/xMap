@@ -18,7 +18,7 @@ import pkg from './package.json' with { type: 'json' };
 export const config: xBuildConfig = {
     common: {
         esbuild: {
-            bundle: true,
+            bundle: false,
             minify: true,
             target: [ `node${ version.slice(1) }` ],
             platform: 'node',
@@ -26,10 +26,7 @@ export const config: xBuildConfig = {
             sourcemap: true,
             sourceRoot: `https://github.com/remotex-lab/xmap/tree/v${ pkg.version }/`,
             entryPoints: {
-                'index': 'src/index.ts',
-                'parser.component': 'src/components/parser.component.ts',
-                'formatter.component': 'src/components/formatter.component.ts',
-                'highlighter.component': 'src/components/highlighter.component.ts'
+                'index': 'src/index.ts'
             }
         }
     },
