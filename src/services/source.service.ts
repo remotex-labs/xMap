@@ -2,51 +2,26 @@
  * Import will remove at compile time
  */
 
+import type { SourceOptionsInterface } from '@services/interfaces/source-service.interface';
+import type { PositionWithCodeInterface } from '@services/interfaces/source-service.interface';
 import type { PositionWithContentInterface } from '@services/interfaces/source-service.interface';
-import type { PositionInterface, SourceMapInterface } from '@services/interfaces/source-service.interface';
-import type { SourceOptionsInterface, PositionWithCodeInterface } from '@services/interfaces/source-service.interface';
+import type { SourceMapInterface, PositionInterface } from '@services/interfaces/source-service.interface';
 
 /**
  * Imports
  */
 
-import { MappingProvider } from '@providers/mapping.provider';
+import { cwd } from 'process';
+import { Bias } from '@components/segment.component';
+import { MappingService } from '@services/mapping.service';
+import { resolve, relative, dirname } from '@components/path.component';
 
 /**
- * Determines the matching behavior when searching for segments in a source map.
- *
- * @property BOUND - No directional preference; returns the first matching segment found
- * @property LOWER_BOUND - Prefers segments with column values lower than or equal to the target
- * @property UPPER_BOUND - Prefers segments with column values greater than or equal to the target
+ * Service for loading, merging, and querying Source Map v3 data.
  *
  * @remarks
- * The bias affects how segment lookups behave when an exact position match cannot be found.
- * This provides flexibility in determining which nearby mapping should be preferred when
- * working with source map data that might not have exact matches for every position.
- *
- * @example
- * ```ts
- * // When searching for a position not exactly in the map:
- * findSegmentForPosition(line, column, Bias.LOWER_BOUND); // Prefers the position just before
- * findSegmentForPosition(line, column, Bias.UPPER_BOUND); // Prefers the position just after
- * ```
- *
- * @since 1.0.0
- */
-
-export const enum Bias {
-    BOUND,
-    LOWER_BOUND,
-    UPPER_BOUND
-}
-
-/**
- * A service for validating and processing source maps that provides functionality for parsing,
- * position mapping, concatenation, and code snippet extraction.
- *
- * @param source - Source map data (SourceService, SourceMapInterface object, or JSON string)
- * @param file - Optional file name for the generated bundle
- * @returns A new SourceService instance
+ * This service wraps a {@link MappingService} and enriches segment lookups with
+ * source file paths, names, and optional source content/code context.
  *
  * @example
  * ```ts
@@ -55,117 +30,206 @@ export const enum Bias {
  * console.log(sourceService.file); // 'bundle.js'
  * ```
  *
- * @since 1.0.0
+ * @since 5.0.0
  */
 
 export class SourceService {
     /**
-     * The name of the generated file this source map applies to.
-     *
-     * @since 1.0.0
+     * Normalized generated file path associated with this source map.
+     * @since 5.0.0
      */
 
-    readonly file: string | null;
+    readonly file: string = '';
 
     /**
-     * Provider for accessing and manipulating the base64 VLQ-encoded mappings.
-     *
-     * @since 1.0.0
+     * Identifier names referenced by mapped segments.
+     * @since 5.0.0
      */
 
-    readonly mappings: MappingProvider;
+    readonly names: Array<string> = [];
 
     /**
-     * The root URL for resolving relative paths in the source files.
-     * @since 1.0.0
+     * Resolved source file paths used by the map.
+     * @since 5.0.0
      */
 
-    readonly sourceRoot: string | null;
+    readonly sources: Array<string> = [];
 
     /**
-     * List of symbol names referenced by the mappings.
-     * @since 1.0.0
+     * Optional source root from the source map payload.
+     * @since 5.0.0
      */
 
-    readonly names: Array<string>;
+    readonly sourceRoot: string = '';
 
     /**
-     * Array of source file paths.
-     * @since 1.0.0
+     * Inline source contents aligned with {@link sources} by index.
+     * @since 5.0.0
      */
 
-    readonly sources: Array<string>;
+    readonly sourcesContent: Array<string> = [];
 
     /**
-     * Array of source file contents.
-     * @since 1.0.0
+     * Internal mappings handler for encode/decode and lookups.
+     * @since 5.0.0
      */
 
-    readonly sourcesContent: Array<string>;
+    readonly mappings: MappingService = new MappingService();
 
     /**
-     * Creates a new SourceService instance.
+     * Creates an empty source service instance.
      *
-     * @param source - Source map data (SourceService, SourceMapInterface object, or JSON string)
-     * @throws Error - When a source map has an invalid format or missing required properties
-     *
-     * @since 1.0.0
-     */
-
-    constructor(source: SourceService);
-
-    /**
-     * Creates a new SourceService instance.
-     *
-     * @param source - Source map data (SourceService, SourceMapInterface object, or JSON string)
-     * @param file - Optional file name for the generated bundle
-     *
-     * @throws Error - When a source map has an invalid format or missing required properties
-     *
-     * @since 1.0.0
-     */
-
-    constructor(source: SourceMapInterface | string, file?: string | null);
-    constructor(source: SourceService | SourceMapInterface | string, file: string | null = null) {
-        if (typeof source === 'string') {
-            source = <SourceMapInterface> JSON.parse(source);
-        }
-
-        source = <SourceMapInterface> source;
-        this.validateSourceMap(source);
-        this.file = source.file ?? file;
-        this.names =  [ ...source.names ?? [] ];
-        this.sources = [ ...source.sources ?? [] ];
-        this.sourceRoot = source.sourceRoot ?? null;
-        this.sourcesContent = source.sourcesContent ? [ ...source.sourcesContent ] : [];
-        this.mappings = new MappingProvider(source.mappings);
-    }
-
-    /**
-     * Converts the source map data to a plain object.
-     *
-     * @returns A SourceMapInterface object representing the current state
+     * @remarks
+     * Useful when building mappings incrementally or as an accumulator target
+     * for {@link assign}.
      *
      * @example
      * ```ts
-     * const mapObject = sourceService.getMapObject();
-     * console.log(mapObject.file); // 'bundle.js'
+     * const source = new SourceService();
      * ```
      *
-     * @since 1.0.0
+     * @since 5.0.0
      */
 
-    getMapObject(): SourceMapInterface {
+    constructor();
+
+    /**
+     * Creates a source service with a generated line offset.
+     *
+     * @param source - Source map payload as object or JSON string
+     * @param offset - Generated line offset applied during mapping decode
+     *
+     * @remarks
+     * Use this overload when the source map file path is already embedded in
+     * the source map payload and only line shifting is required.
+     *
+     * @example
+     * ```ts
+     * const source = new SourceService(rawMap, 20);
+     * ```
+     *
+     * @since 5.0.0
+     */
+
+    constructor(source: SourceMapInterface | string, offset?: number);
+
+    /**
+     * Creates a source service with explicit file path and optional line offset.
+     *
+     * @param source - Source map payload as object or JSON string
+     * @param file - Generated file path override
+     * @param offset - Generated line offset applied during mapping decode
+     *
+     * @remarks
+     * Prefer this overload when the source map payload omits `file` or when a
+     * normalized file path override is required.
+     *
+     * @example
+     * ```ts
+     * const source = new SourceService(rawMap, 'dist/app.js', 5);
+     * ```
+     *
+     * @since 5.0.0
+     */
+
+    constructor(source: SourceMapInterface | string, file?: string, offset?: number);
+
+    /**
+     * Creates a new SourceService from a source map object or JSON string.
+     *
+     * @param source - Source map payload as object or JSON string
+     * @param fileOrOffset - Generated file path override, or generated line offset when numeric
+     * @param offset - Generated line offset when `fileOrOffset` is a file path
+     *
+     * @throws Error - If file path is missing after normalization
+     * @throws Error - If source map input is invalid or unsupported
+     *
+     * @since 5.0.0
+     */
+
+    constructor(source?: SourceMapInterface | string, fileOrOffset?: string | number, offset?: number) {
+        if(!source) return;
+        const sourceObject = SourceService.parseSourceMap(source);
+        const file = typeof fileOrOffset === 'string' ? fileOrOffset : sourceObject.file;
+        if(!file)
+            throw new Error('File Path not set for the sourcemap');
+
+        this.file = resolve(file);
+        const lineOffset = typeof fileOrOffset === 'number' ? fileOrOffset : (offset ?? 0);
+        this.mappings.decode(sourceObject.mappings, 0, 0, lineOffset);
+
+        this.sources.push(...this.resolveSources(sourceObject.sources));
+        if(sourceObject.names) this.names.push(...sourceObject.names);
+        if(sourceObject.sourceRoot) this.sourceRoot = sourceObject.sourceRoot;
+        if(sourceObject.sourcesContent) this.sourcesContent.push(...sourceObject.sourcesContent);
+    }
+
+    /**
+     * Concatenates multiple source maps into one service instance.
+     *
+     * @param sources - Source services to merge in order
+     *
+     * @returns A new service containing merged mappings, names, sources, and contents
+     *
+     * @throws Error - If no source services are provided
+     *
+     * @remarks
+     * Name and source indices are offset during decode to preserve index
+     * correctness across all merged source maps.
+     *
+     * @example
+     * ```ts
+     * const merged = SourceService.assign(sourceA, sourceB, ...);
+     * ```
+     *
+     * @since 5.0.0
+     */
+
+    static assign(...sources: Array<SourceService>): SourceService {
+        if (sources.length < 1)
+            throw new Error('At least one source-map must be provided for assign.');
+
+        const result = new SourceService();
+        for(const source of sources) {
+            result.mappings.decode(source.mappings, result.names.length, result.sources.length);
+            result.names.push(...source.names);
+            result.sources.push(...source.sources.map(sourceFile => {
+                if(this.isURL(sourceFile))
+                    return sourceFile;
+
+                return source.sourceRoot + sourceFile;
+            }));
+            result.sourcesContent.push(...source.sourcesContent);
+        }
+
+        return result;
+    }
+
+    /**
+     * Serializes current data to a Source Map v3 object.
+     *
+     * @returns A source map object with encoded mappings
+     *
+     * @remarks
+     * Includes optional `file` and `sourceRoot` only when they are set.
+     *
+     * @example
+     * ```ts
+     * const map = source.getSourceObject();
+     * ```
+     *
+     * @since 5.0.0
+     */
+
+    getSourceObject(): SourceMapInterface {
         const sourceMap: SourceMapInterface = {
             version: 3,
+            file: this.file,
             names: this.names,
             sources: this.sources,
             mappings: this.mappings.encode(),
             sourcesContent: this.sourcesContent
         };
-
-        if (this.file)
-            sourceMap.file = this.file;
 
         if (this.sourceRoot)
             sourceMap.sourceRoot = this.sourceRoot;
@@ -174,122 +238,24 @@ export class SourceService {
     }
 
     /**
-     * Concatenates additional source maps into the current instance.
+     * Resolves an original position from a generated position.
      *
-     * @param maps - Source maps to concatenate with the current map
+     * @param line - 1-based generated line number
+     * @param column - 1-based generated column number
+     * @param bias - Search behavior when no exact match exists (default: {@link Bias.BOUND})
      *
-     * @example
-     * ```ts
-     * sourceService.concat(anotherSourceMap);
-     * console.log(sourceService.sources); // Updated source paths
-     * ```
+     * @returns Position details, or `null` when no segment matches
      *
-     * @throws Error - When no maps are provided
-     *
-     * @since 1.0.0
-     */
-
-    concat(...maps: Array<SourceMapInterface | SourceService>): void {
-        if (maps.length < 1)
-            throw new Error('At least one map must be provided for concatenation.');
-
-        for (const map of (maps as Array<SourceMapInterface>)) {
-            this.mappings.decode(map.mappings, this.names.length, this.sources.length);
-            this.names.push(...map.names);
-            this.sources.push(...map.sources);
-            this.sourcesContent.push(...map.sourcesContent ?? []);
-        }
-    }
-
-    /**
-     * Creates a new SourceService instance with concatenated source maps.
-     *
-     * @param maps - Source maps to concatenate with a copy of the current map
-     * @returns A new SourceService instance with the combined maps
+     * @remarks
+     * The returned `name` can be `null` when the mapped segment has no
+     * associated name index.
      *
      * @example
      * ```ts
-     * const newService = sourceService.concatNewMap(anotherSourceMap);
-     * console.log(newService.sources); // Combined sources array
+     * const pos = source.getPosition(12, 8);
      * ```
      *
-     * @throws Error - When no maps are provided
-     *
-     * @since 1.0.0
-     */
-
-    concatNewMap(...maps: Array<SourceMapInterface | SourceService>): SourceService {
-        if (maps.length < 1)
-            throw new Error('At least one map must be provided for concatenation.');
-
-        const sourceService = new SourceService(this);
-        for (const map of (maps as Array<SourceMapInterface>)) {
-            sourceService.mappings.decode(map.mappings, sourceService.names.length, sourceService.sources.length);
-            sourceService.names.push(...map.names);
-            sourceService.sources.push(...map.sources);
-            sourceService.sourcesContent.push(...map.sourcesContent ?? []);
-        }
-
-        return sourceService;
-    }
-
-    /**
-     * Finds position in generated code based on the original source position.
-     *
-     * @param line - Line number in the original source
-     * @param column - Column number in the original source
-     * @param sourceIndex - Index or file path of the original source
-     * @param bias - Position matching strategy (default: Bias.BOUND)
-     * @returns Position information or null if not found
-     *
-     * @example
-     * ```ts
-     * const position = sourceService.getPositionByOriginal(1, 10, 'foo.ts');
-     * console.log(position?.generatedLine); // Line in generated code
-     * ```
-     *
-     * @since 1.0.0
-     */
-
-    getPositionByOriginal(line: number, column: number, sourceIndex: number | string, bias: Bias = Bias.BOUND): PositionInterface | null {
-        let index = <number> sourceIndex;
-        if (typeof sourceIndex === 'string')
-            index = this.sources.findIndex(str => str.includes(sourceIndex));
-
-        if (index < 0)
-            return null;
-
-        const segment = this.mappings.getOriginalSegment(line, column, index, bias);
-        if (!segment)
-            return null;
-
-        return {
-            name: this.names[segment.nameIndex ?? -1] ?? null,
-            line: segment.line,
-            column: segment.column,
-            source: this.sources[segment.sourceIndex],
-            sourceRoot: this.sourceRoot,
-            sourceIndex: segment.sourceIndex,
-            generatedLine: segment.generatedLine,
-            generatedColumn: segment.generatedColumn
-        };
-    }
-
-    /**
-     * Finds position in an original source based on the generated code position.
-     *
-     * @param line - Line number in the generated code
-     * @param column - Column number in the generated code
-     * @param bias - Position matching strategy (default: Bias.BOUND)
-     * @returns Position information or null if not found
-     *
-     * @example
-     * ```ts
-     * const position = sourceService.getPosition(2, 15);
-     * console.log(position?.source); // Original source file
-     * ```
-     *
-     * @since 1.0.0
+     * @since 5.0.0
      */
 
     getPosition(line: number, column: number, bias: Bias = Bias.BOUND): PositionInterface | null {
@@ -310,20 +276,23 @@ export class SourceService {
     }
 
     /**
-     * Retrieves position with source content for a location in generated code.
+     * Resolves an original position and includes full source content for that file.
      *
-     * @param line - Line number in the generated code
-     * @param column - Column number in the generated code
-     * @param bias - Position matching strategy (default: Bias.BOUND)
-     * @returns Position with content information or null if not found
+     * @param line - 1-based generated line number
+     * @param column - 1-based generated column number
+     * @param bias - Search behavior when no exact match exists (default: {@link Bias.BOUND})
+     *
+     * @returns Position details with source content, or `null` when unavailable
+     *
+     * @remarks
+     * Returns `null` if no mapped segment is found for the generated position.
      *
      * @example
      * ```ts
-     * const posWithContent = sourceService.getPositionWithContent(3, 5);
-     * console.log(posWithContent?.sourcesContent); // Original source content
+     * const pos = source.getPositionWithContent(12, 8);
      * ```
      *
-     * @since 1.0.0
+     * @since 5.0.0
      */
 
     getPositionWithContent(line: number, column: number, bias: Bias = Bias.BOUND): PositionWithContentInterface | null {
@@ -338,24 +307,27 @@ export class SourceService {
     }
 
     /**
-     * Retrieves position with a code snippet from the original source.
+     * Resolves an original position and includes surrounding code context.
      *
-     * @param line - Line number in the generated code
-     * @param column - Column number in the generated code
-     * @param bias - Position matching strategy (default: Bias.BOUND)
-     * @param options - Configuration for the amount of surrounding lines
-     * @returns Position with code snippet or null if not found
+     * @param line - 1-based generated line number
+     * @param column - 1-based generated column number
+     * @param bias - Search behavior when no exact match exists (default: {@link Bias.BOUND})
+     * @param options - Optional line window configuration
+     *
+     * @returns Position details with extracted code context, or `null` when unavailable
+     *
+     * @remarks
+     * Default window uses `3` lines before and `4` lines after the target line.
      *
      * @example
      * ```ts
-     * const posWithCode = sourceService.getPositionWithCode(4, 8, Bias.BOUND, {
+     * const pos = source.getPositionWithCode(12, 8, Bias.BOUND, {
      *   linesBefore: 2,
      *   linesAfter: 2
      * });
-     * console.log(posWithCode?.code); // Code snippet with context
      * ```
      *
-     * @since 1.0.0
+     * @since 5.0.0
      */
 
     getPositionWithCode(line: number, column: number, bias: Bias = Bias.BOUND, options?: SourceOptionsInterface): PositionWithCodeInterface | null {
@@ -383,37 +355,163 @@ export class SourceService {
     }
 
     /**
-     * Serializes the source map to a JSON string.
+     * Resolves a generated position from an original source position.
      *
-     * @returns JSON string representation of the source map
+     * @param line - 1-based original source line number
+     * @param column - 1-based original source column number
+     * @param sourceIndex - Source index or a partial source path to locate the index
+     * @param bias - Search behavior when no exact match exists (default: {@link Bias.BOUND})
+     *
+     * @returns Position details, or `null` when no segment/source matches
+     *
+     * @remarks
+     * String `sourceIndex` is matched using substring search against resolved
+     * source paths in {@link sources}.
      *
      * @example
      * ```ts
-     * const jsonString = sourceService.toString();
-     * console.log(jsonString); // '{"version":3,"file":"bundle.js",...}'
+     * const pos = source.getPositionByOriginal(40, 3, 'src/main.ts');
      * ```
      *
-     * @since 1.0.0
+     * @since 5.0.0
      */
 
-    toString(): string {
-        return JSON.stringify(this.getMapObject());
+    getPositionByOriginal(line: number, column: number, sourceIndex: number | string, bias: Bias = Bias.BOUND): PositionInterface | null {
+        let index = <number> sourceIndex;
+        if (typeof sourceIndex === 'string')
+            index = this.sources.findIndex(str => str.includes(sourceIndex));
+
+        if (index < 0)
+            return null;
+
+        const segment = this.mappings.getOriginalSegment(line, column, index, bias);
+        if (!segment)
+            return null;
+
+        return {
+            name: this.names[segment.nameIndex ?? -1] ?? null,
+            line: segment.line,
+            column: segment.column,
+            source: this.sources[segment.sourceIndex],
+            sourceRoot: this.sourceRoot,
+            sourceIndex: segment.sourceIndex,
+            generatedLine: segment.generatedLine,
+            generatedColumn: segment.generatedColumn
+        };
     }
 
     /**
-     * Validates a source map object has all required properties.
+     * Serializes the current source map object as JSON.
      *
-     * @param input - Source map object to validate
+     * @returns JSON string representation of {@link getSourceObject}
      *
-     * @throws Error - When required properties are missing
+     * @remarks
+     * Output is suitable for writing a `.map` file or transport over APIs.
      *
-     * @since 1.0.0
+     * @example
+     * ```ts
+     * const json = source.toString();
+     * ```
+     *
+     * @since 5.0.0
      */
 
-    private validateSourceMap(input: SourceMapInterface): void {
-        const requiredKeys: (keyof SourceMapInterface)[] = [ 'sources', 'mappings', 'names' ];
-        if (!requiredKeys.every(key => key in input)) {
-            throw new Error('Missing required keys in SourceMap.');
-        }
+    toString(): string {
+        return JSON.stringify(this.getSourceObject());
+    }
+
+    /**
+     * Parses and validates Source Map v3 input.
+     *
+     * @param input - Source map object or JSON string
+     *
+     * @returns Parsed and validated source map object
+     *
+     * @throws Error - If source map version is not `3`
+     * @throws Error - If required keys are missing
+     *
+     * @remarks
+     * Accepts JSON input for convenience and validates required structural keys
+     * before decode operations are attempted.
+     *
+     * @example
+     * ```ts
+     * const map = SourceService['parseSourceMap'](raw);
+     * ```
+     *
+     * @since 5.0.0
+     */
+
+    private static parseSourceMap(input: SourceMapInterface | string): SourceMapInterface {
+        if (typeof input === 'string') input = <SourceMapInterface> JSON.parse(input);
+        if (input.version !== 3)
+            throw new Error(`Unsupported SourceMap version: ${ input.version }. Expected version 3.`);
+
+        const requiredKeys: Array<keyof SourceMapInterface> = [ 'sources', 'mappings' ];
+        const missingKeys = requiredKeys.filter(key => !(key in input));
+
+        if (missingKeys.length > 0)
+            throw new Error(
+                `Invalid SourceMap: missing required ${ missingKeys.length === 1 ? 'key' : 'keys' }: ${
+                    missingKeys.join(', ')
+                }.`
+            );
+
+        return input;
+    }
+
+    /**
+     * Checks whether a source path is an HTTP(S) URL.
+     *
+     * @param path - Path or URL candidate to evaluate
+     *
+     * @returns `true` when the value starts with `http` or `https`, otherwise `false`
+     *
+     * @remarks
+     * This helper is used to preserve absolute URL sources and avoid filesystem
+     * path normalization for remote resources.
+     *
+     * @example
+     * ```ts
+     * SourceService['isURL']('https://cdn.example.com/app.ts'); // true
+     * SourceService['isURL']('src/app.ts'); // false
+     * ```
+     *
+     * @since 5.0.0
+     */
+
+    private static isURL(path: string): boolean {
+        return path.startsWith('http') || path.startsWith('https');
+    }
+
+    /**
+     * Resolves source paths relative to the current working directory.
+     *
+     * @param sources - Raw source entries from source map payload
+     *
+     * @returns Normalized relative source file paths
+     *
+     * @remarks
+     * Each path is resolved from the generated file location, then converted to
+     * a path relative to `process.cwd()`.
+     *
+     * @example
+     * ```ts
+     * // internal utility used during construction
+     * ```
+     *
+     * @since 5.0.0
+     */
+
+    private resolveSources(sources: Array<string>): Array<string> {
+        return sources?.map(source => {
+            if(SourceService.isURL(source))
+                return source;
+
+            if(source.startsWith('..'))
+                return relative(cwd(), resolve(dirname(this.file), source));
+
+            return source;
+        }) ?? [];
     }
 }

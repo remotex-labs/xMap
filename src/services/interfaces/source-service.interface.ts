@@ -16,7 +16,7 @@ export interface SourceMapInterface {
      * @since 1.0.0
      */
 
-    names: Array<string>;
+    names?: Array<string>;
 
     /**
      * The version of the source map specification (standard is 3)
@@ -53,6 +53,7 @@ export interface SourceMapInterface {
 
     sourcesContent?: Array<string>;
 }
+
 
 /**
  * Represents a position in source code with mapping information
