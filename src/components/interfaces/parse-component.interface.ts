@@ -1,55 +1,159 @@
 /**
- * Interface representing a stack frame in a stack trace.
+ * Describes the origin of evaluated code referenced by a stack frame.
  *
- * This structure provides detailed information about the location
- * of a specific frame in the stack trace, primarily used in error debugging and stack analysis.
- * It optionally includes information about the line, column, file, function name, and other details
- * about the origin of the code.
+ * @since 3.0.0
+ */
+
+export interface EvalOriginInterface {
+    /**
+     * 1-based line number within the evaluated source, when available.
+     * @since 3.0.0
+     */
+
+    line?: number;
+
+    /**
+     * 1-based column number within the evaluated source line, when available.
+     * @since 3.0.0
+     */
+
+    column?: number;
+
+    /**
+     * File name associated with the evaluated source, when available.
+     * @since 3.0.0
+     */
+
+    fileName?: string;
+
+    /**
+     * Function name associated with the evaluated source, when available.
+     * @since 3.0.0
+     */
+
+    functionName?: string;
+}
+
+/**
+ * Represents a stack frame in a stack trace.
  *
- * Properties:
- * - source: The source code relevant to the stack frame.
- * - line: An optional line number in the code associated with this frame.
- * - column: An optional column number in the line associated with this frame.
- * - fileName: The name of the file associated with the frame, if available.
- * - functionName: The name of the function where the stack frame is located, if available.
- * - eval: Indicates if the stack frame originates from an evaluated script.
- * - async: Indicates if the stack frame is part of an asynchronous operation.
- * - native: Indicates if the stack frame is part of native code execution.
- * - constructor: Indicates if the frame is related to an object constructor invocation.
- * - evalOrigin: Optional information about the origin of the code if it resulted from an eval execution,
- * including line number, column number, file name, and function name.
+ * @remarks
+ * This structure provides location and classification details about a single call site,
+ * primarily used for diagnostics, stack analysis, and rendering stack traces in a structured form.
  *
  * @since 3.0.0
  */
 
 export interface StackFrameInterface {
+    /**
+     * The original frame text as provided by the runtime or parser.
+     * @since 3.0.0
+     */
+
     source: string;
+
+    /**
+     * 1-based line number within the source file, when available.
+     * @since 3.0.0
+     */
+
     line?: number;
+
+    /**
+     * 1-based column number within the source line, when available.
+     * @since 3.0.0
+     */
+
     column?: number;
+
+    /**
+     * File name for the call site, when available.
+     * @since 3.0.0
+     */
+
     fileName?: string;
+
+    /**
+     * Function name for the call site, when available.
+     * @since 3.0.0
+     */
+
     functionName?: string;
+
+    /**
+     * True when the frame originates from evaluated code (for example, `eval()`).
+     * @since 3.0.0
+     */
+
     eval: boolean;
+
+    /**
+     * True when the frame is part of an asynchronous call chain, when detectable.
+     * @since 3.0.0
+     */
+
     async: boolean;
+
+    /**
+     * True when the frame originates from native code execution.
+     * @since 3.0.0
+     */
+
     native: boolean;
+
+    /**
+     * True when the frame represents a constructor invocation.
+     * @since 3.0.0
+     */
+
     constructor: boolean;
-    evalOrigin?: {
-        line?: number;
-        column?: number;
-        fileName?: string;
-        functionName?: string;
-    };
+
+    /**
+     * Information about the evaluated code origin, when `eval` is true and the runtime provides it.
+     * @see EvalOriginInterface
+     * @since 3.0.0
+     */
+
+    evalOrigin?: EvalOriginInterface;
 }
 
 /**
- * Represents a fully parsed error stack trace with structured information
+ * Represents a fully parsed error stack trace with structured information.
+ *
+ * @remarks
+ * `rawStack` preserves the original stack string for debugging and fallback rendering.
  *
  * @see StackFrameInterface
  * @since 2.1.0
  */
 
 export interface ParsedStackTraceInterface {
-    name: string;               // Error name/type
-    message: string;            // Error message
-    stack: StackFrameInterface[];        // Parsed frames
-    rawStack: string;           // Original stack trace string
+    /**
+     * Error name (for example, `TypeError`).
+     * @since 2.1.0
+     */
+
+    name: string;
+
+    /**
+     * Error message.
+     * @since 2.1.0
+     */
+
+    message: string;
+
+    /**
+     * Parsed frames in call order.
+     * @see StackFrameInterface
+     * @since 2.1.0
+     */
+
+    stack: Array<StackFrameInterface>;
+
+    /**
+     * The raw stack string as received from the runtime.
+     * @since 2.1.0
+     */
+
+    rawStack: string;
 }
