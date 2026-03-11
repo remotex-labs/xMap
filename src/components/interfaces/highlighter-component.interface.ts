@@ -173,17 +173,20 @@ export interface HighlightNodeSegmentInterface {
      * The starting character position of the segment in the source text.
      * @since 1.0.0
      */
+
     start: number;
 
     /**
      * The ending character position of the segment in the source text.
      * @since 1.0.0
      */
+
     end: number;
 
     /**
      * The color or style code to apply to this segment.
      * @since 1.0.0
      */
+
     color: ColorFunctionType;
 }
