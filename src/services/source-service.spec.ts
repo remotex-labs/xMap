@@ -8,8 +8,7 @@ import type { SourceMapInterface } from '@services/interfaces/source-service.int
  * Imports
  */
 
-import { cwd } from 'process';
-import { dirname } from '@components/path.component';
+import { resolve } from '@components/path.component';
 import { Bias } from '@components/segment.component';
 import { SourceService } from '@services/source.service';
 
@@ -18,13 +17,6 @@ import { SourceService } from '@services/source.service';
  */
 
 describe('SourceService', () => {
-    beforeAll(() => {
-        xJet.mock(cwd).mockReturnValue('/home/');
-        xJet.mock(dirname).mockImplementation((filePath: string): string => {
-            return filePath.substring(0, filePath.lastIndexOf('/')) || '.';
-        });
-    });
-
     beforeEach(() => {
         xJet.clearAllMocks();
     });
@@ -118,7 +110,7 @@ describe('SourceService', () => {
 
             const service = new SourceService(sourceMapJSON);
 
-            expect(service.file).toBe('/home/bundle.js');
+            expect(service.file).toBe(resolve('bundle.js'));
             expect(service.names).toEqual([]);
             expect(service.sourcesContent).toEqual([ 'const x = 1;' ]);
         });
@@ -185,7 +177,7 @@ describe('SourceService', () => {
 
             const service = new SourceService(sourceMap, 'dist/bundle.js');
 
-            expect(service.file).toBe('/home/dist/bundle.js');
+            expect(service.file).toBe(resolve('dist/bundle.js'));
         });
 
         test('should prefer the file override over the source map file field', () => {
@@ -199,7 +191,7 @@ describe('SourceService', () => {
 
             const service = new SourceService(sourceMap, 'dist/override.js');
 
-            expect(service.file).toBe('/home/dist/override.js');
+            expect(service.file).toBe(resolve('dist/override.js'));
         });
 
         test('should throw when file path is missing and not provided as override', () => {
@@ -237,7 +229,7 @@ describe('SourceService', () => {
 
             expect(() => new SourceService(sourceMap, 'dist/bundle.js', 10)).not.toThrow();
             const service = new SourceService(sourceMap, 'dist/bundle.js', 10);
-            expect(service.file).toBe('/home/dist/bundle.js');
+            expect(service.file).toBe(resolve('dist/bundle.js'));
         });
 
         test('should use offset of 0 when not provided', () => {
@@ -1124,7 +1116,7 @@ describe('SourceService', () => {
         test('should round-trip a source map object without file or sourceRoot', () => {
             const mapOriginalObject: SourceMapInterface = {
                 version: 3,
-                file: '/home/dist/bundle.js',
+                file: 'dist/bundle.js',
                 sources: [ '../src/testx.ts' ],
                 sourcesContent: [
                     '\n\nfunction ts() {\n    console.log(\'ts\');\n}\n\nfunction name22(data: string) {\n    console.log(\'name\' + data);\n}\n\nts();\nname22(\'x\');\n',
@@ -1139,6 +1131,7 @@ describe('SourceService', () => {
 
             expect(mapObject).toEqual({
                 ...mapOriginalObject,
+                file: resolve('dist/bundle.js'),
                 sources: [ 'src/testx.ts' ]
             });
         });
@@ -1146,7 +1139,7 @@ describe('SourceService', () => {
         test('should include file and sourceRoot in the output when both are set', () => {
             const mapOriginalObject: SourceMapInterface = {
                 version: 3,
-                file: '/home/bundle.js',
+                file: resolve('bundle.js'),
                 sources: [ 'src/testx.ts' ],
                 sourcesContent: [ '\n' ],
                 mappings: ';;;AAEA,SAAS,KAAK;',
@@ -1240,7 +1233,7 @@ describe('SourceService', () => {
             const json = service.toString();
 
             expect(() => JSON.parse(json)).not.toThrow();
-            expect(JSON.parse(json)).toMatchObject({ version: 3, file: '/home/bundle.js' });
+            expect(JSON.parse(json)).toMatchObject({ version: 3, file: resolve('bundle.js') });
         });
 
         test('should produce output consistent with getSourceObject', () => {
