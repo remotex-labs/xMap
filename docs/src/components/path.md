@@ -4,24 +4,12 @@ Cross-platform path helpers used by xMap. These utilities normalize common path 
 
 These functions are intended for file paths. Do not pass `http(s)` URLs into them, because `toPosix()` collapses duplicate slashes and will turn `https://...` into `https:/...`.
 
-## Imports
-
-```ts
-import { toPosix, normalize, join, resolve, dirname, relative, basename } from '@remotex-labs/xmap';
-```
-
-Or directly:
-
-```ts
-import { toPosix, normalize, join, resolve, dirname, relative, basename } from '@remotex-labs/xmap/path.component';
-```
-
 ## API
 
 ### toPosix
 
 ```ts
-toPosix(input: string | null | undefined): string
+declare function toPosix(input: string | null | undefined): string;
 ```
 
 Converts backslashes to forward slashes and collapses duplicate slashes.
@@ -35,7 +23,7 @@ toPosix(undefined);                        // ''
 ### normalize
 
 ```ts
-normalize(path: string): string
+declare function normalize(path: string): string;
 ```
 
 Normalizes a path to POSIX format and resolves `.` and `..` segments using `path.posix.normalize()`.
@@ -48,7 +36,7 @@ normalize('C:\\Users\\..\\Documents\\file.txt');  // 'C:/Documents/file.txt'
 ### join
 
 ```ts
-join(...paths: Array<string>): string
+declare function join(...paths: Array<string>): string;
 ```
 
 Joins multiple path segments using `path.posix.join()` after converting each segment with `toPosix()`.
@@ -61,7 +49,7 @@ join('C:\\Users', 'Documents', '../Pictures/photo.jpg'); // 'C:/Users/Pictures/p
 ### resolve
 
 ```ts
-resolve(...paths: Array<string>): string
+declare function resolve(...paths: Array<string>): string;
 ```
 
 Resolves to an absolute path using Node's `path.resolve(...)`, then converts the result to POSIX format.
@@ -76,7 +64,7 @@ resolve('/var/www', 'html', 'index.html');  // '/var/www/html/index.html'
 ### dirname
 
 ```ts
-dirname(p: string): string
+declare function dirname(p: string): string;
 ```
 
 Returns the directory name for `p` (POSIX output).
@@ -91,7 +79,7 @@ dirname('/file.txt');                        // '/'
 ### relative
 
 ```ts
-relative(from: string, to: string): string
+declare function relative(from: string, to: string): string;
 ```
 
 Computes the relative path from `from` to `to` (POSIX output). Returns `'.'` when both paths point to the same location.
@@ -105,7 +93,7 @@ relative('C:\\Users\\project\\src', 'C:\\Users\\project\\dist\\bundle.js'); // '
 ### basename
 
 ```ts
-basename(p: string, suffix?: string): string
+declare function basename(p: string, suffix?: string): string;
 ```
 
 Returns the last portion of a path (file name or final directory name). If `suffix` is provided and matches, it is removed.
