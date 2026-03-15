@@ -22,11 +22,11 @@ export default defineVersionedConfig({
         ]
     ],
     versionsConfig: {
-        current: 'v4.x.x',
+        current: 'v5.0.x',
         versionSwitcher: false
     },
     themeConfig: {
-        logo: '/xmap.png',
+        logo: '/logo.png',
 
         search: {
             provider: 'local'
@@ -40,11 +40,44 @@ export default defineVersionedConfig({
 
         sidebar: {
             root: [
-                { text: 'Guide', link: '.' },
-                { text: 'Parse', link: 'parse' },
-                { text: 'Formatter', link: 'formatter' },
-                { text: 'Highlighter', link: 'highlighter' },
-                { text: 'SourceService', link: 'sourceService' }
+                {
+                    text: 'Components',
+                    collapsed: false,
+                    base: '/components/',
+                    items: [
+                        { text: 'Path', link: 'path' },
+                        { text: 'Parse', link: 'parse' },
+                        { text: 'Formatter', link: 'formatter' },
+                        { text: 'Highlighter', link: 'highlighter' }
+                    ]
+                },
+                {
+                    text: 'Service',
+                    collapsed: false,
+                    base: '/services/',
+                    items: [
+                        { text: 'Source', link: 'source' },
+                        { text: 'Resolve', link: 'resolve' }
+                    ]
+                }
+            ],
+            'v4.0.x': [
+                {
+                    text: 'Components',
+                    collapsed: false,
+                    base: '/components/',
+                    items: [
+                        { text: 'Parse', link: 'parse' },
+                        { text: 'Formatter', link: 'formatter' },
+                        { text: 'Highlighter', link: 'highlighter' }
+                    ]
+                },
+                {
+                    text: 'Service',
+                    collapsed: false,
+                    base: '/services/',
+                    items: [{ text: 'Source', link: 'source' }]
+                }
             ]
         },
 
