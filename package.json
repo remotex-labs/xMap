@@ -7,8 +7,9 @@
     "author": "Garefild",
     "version": "1.0.0-local",
     "license": "Mozilla Public License Version 2.0",
-    "description": "A library with a sourcemap parser and TypeScript code formatter for the CLI",
     "homepage": "https://remotex-labs.github.io/xMap/",
+    "description": "A library with a sourcemap parser and TypeScript code formatter for the CLI",
+    "sideEffects": false,
     "repository": {
         "type": "git",
         "url": "git+https://github.com/remotex-lab/xMap.git"
@@ -17,61 +18,19 @@
         "url": "https://github.com/remotex-lab/xMap/issues"
     },
     "keywords": [
-        "xmap",
+        "cli",
         "xMap",
-        "sourcemap",
+        "xmap",
         "parser",
-        "typescript",
         "formatter",
-        "CLI",
-        "syntax-highlighting",
-        "code-formatting",
-        "javascript",
         "debugging",
-        "developer-tools",
-        "typescript runner"
+        "sourcemap",
+        "source-map",
+        "highlighter",
+        "developer-tools"
     ],
     "engines": {
         "node": ">=20"
-    },
-    "typesVersions": {
-        "*": {
-            "*": [
-                "./dist/*"
-            ],
-            "parser.component": [
-                "./dist/parser.component.d.ts"
-            ],
-            "formatter.component": [
-                "./dist/formatter.component.d.ts"
-            ],
-            "highlighter.component": [
-                "./dist/highlighter.component.d.ts"
-            ]
-        }
-    },
-    "exports": {
-        ".": {
-            "types": "./dist/index.d.ts",
-            "import": "./dist/esm/index.js",
-            "require": "./dist/cjs/index.js"
-        },
-        "./parser.component": {
-            "types": "./dist/parser.component.d.ts",
-            "import": "./dist/esm/parser.component.js",
-            "require": "./dist/cjs/parser.component.js"
-        },
-        "./formatter.component": {
-            "types": "./dist/formatter.component.d.ts",
-            "import": "./dist/esm/formatter.component.js",
-            "require": "./dist/cjs/formatter.component.js"
-        },
-        "./highlighter.component": {
-            "types": "./dist/highlighter.component.d.ts",
-            "import": "./dist/esm/highlighter.component.js",
-            "require": "./dist/cjs/highlighter.component.js"
-        },
-        "./package.json": "./package.json"
     },
     "files": [
         "dist",
@@ -79,32 +38,36 @@
         "README.md"
     ],
     "scripts": {
-        "dev": "xBuild -w",
-        "test": "xjet",
-        "build": "xBuild",
-        "test:coverage": "xjet --coverage",
-        "lint": "pnpm run lint:md && pnpm run lint:eslint && pnpm run lint:typescript",
-        "lint:md": "markdownlint \"**/*.md\" \".github/**/*.md\" --ignore \"node_modules/**\"",
-        "lint:eslint": "eslint . -c ./eslint.config.mjs",
-        "lint:typescript": "xbuild --tc",
-        "ci:test": "xjet",
-        "ci:clean": "rm -rf ./dist",
-        "ci:build": "npm run build",
-        "docs:dev": "vitepress dev docs",
-        "docs:build": "vitepress build docs",
-        "docs:preview": "vitepress preview docs"
+        "dev":              "xBuild -w",
+        "build":            "xBuild",
+        "build:clean":      "rm -rf ./dist && xBuild",
+
+        "test":             "xjet",
+        "test:coverage":    "xjet --coverage",
+
+        "lint":             "pnpm lint:md && pnpm lint:eslint && pnpm lint:typescript",
+        "lint:eslint":      "eslint . -c ./eslint.config.mjs",
+        "lint:typescript":  "xBuild --tc",
+        "lint:md":          "markdownlint \"**/*.md\" --ignore node_modules",
+
+        "docs:dev":         "vitepress dev docs",
+        "docs:build":       "vitepress build docs",
+        "docs:preview":     "vitepress preview docs",
+
+        "ci":              "pnpm build:clean && pnpm lint && pnpm test",
+        "prepublishOnly":  "pnpm build:clean && pnpm lint && pnpm test:coverage"
     },
     "devDependencies": {
         "eslint": "^10.0.3",
         "vitepress": "^2.0.0-alpha.15",
         "markdownlint-cli": "^0.48.0",
-        "typescript-eslint": "^8.57.0",
+        "typescript-eslint": "^8.57.1",
         "eslint-plugin-tsdoc": "^0.5.2",
         "@types/node": "^25.5.0",
         "@remotex-labs/xjet": "^1.5.4",
         "@viteplus/versions": "^2.0.6",
-        "@remotex-labs/xbuild": "^2.2.3",
-        "eslint-plugin-perfectionist": "^5.6.0"
+        "@remotex-labs/xbuild": "^2.2.4",
+        "eslint-plugin-perfectionist": "^5.7.0"
     },
     "dependencies": {
         "typescript": "^5.9.3",
