@@ -7,14 +7,12 @@
         "rootDir": "src",
         "declaration": true,
         "skipLibCheck": true,
-        "importHelpers": true,
-        "isolatedModules": false,
-        "esModuleInterop": false,
+        "declarationMap": true,
+        "esModuleInterop": true,
+        "isolatedModules": true,
         "moduleDetection": "force",
         "moduleResolution": "bundler",
-        "resolveJsonModule": true,
-        "allowSyntheticDefaultImports": true,
-        "forceConsistentCasingInFileNames": true,
+        "emitDeclarationOnly": true,
         "lib": [
             "DOM",
             "ESNext"
