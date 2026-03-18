@@ -4,7 +4,7 @@
 
 import type { Bias } from '@components/segment.component';
 import type { SourceService } from '@services/source.service';
-import type { StackFrameInterface } from '@components/interfaces/parse-component.interface';
+import type { StackFrameInterface } from '@components/interfaces/parser-component.interface';
 
 /**
  * Options controlling stack trace resolution and source context extraction.
