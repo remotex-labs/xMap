@@ -46,16 +46,16 @@
         "test:coverage":    "xjet --coverage",
 
         "lint":             "pnpm lint:md && pnpm lint:eslint && pnpm lint:typescript",
+        "lint:md":          "markdownlint \"**/*.md\" --ignore node_modules",
         "lint:eslint":      "eslint . -c ./eslint.config.mjs",
         "lint:typescript":  "xBuild --tc",
-        "lint:md":          "markdownlint \"**/*.md\" --ignore node_modules",
 
         "docs:dev":         "vitepress dev docs",
         "docs:build":       "vitepress build docs",
         "docs:preview":     "vitepress preview docs",
 
-        "ci":              "pnpm build:clean && pnpm lint && pnpm test",
-        "prepublishOnly":  "pnpm build:clean && pnpm lint && pnpm test:coverage"
+        "ci":              "pnpm lint && pnpm test && pnpm build:clean",
+        "prepublishOnly":  "pnpm build:clean && pnpm lint && pnpm test"
     },
     "devDependencies": {
         "eslint": "^10.0.3",
