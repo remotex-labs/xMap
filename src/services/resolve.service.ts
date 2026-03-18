@@ -5,7 +5,7 @@
 import type { FormatStackFrameInterface } from './interfaces/resolve-service.interface';
 import type { PositionWithCodeInterface } from '@services/interfaces/source-service.interface';
 import type { ResolveOptionsInterface, ResolveMetadataInterface } from './interfaces/resolve-service.interface';
-import type { ParsedStackTraceInterface, StackFrameInterface } from '@components/interfaces/parse-component.interface';
+import type { ParsedStackTraceInterface, StackFrameInterface } from '@components/interfaces/parser-component.interface';
 
 /**
  * Imports

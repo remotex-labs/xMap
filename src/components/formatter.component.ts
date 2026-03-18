@@ -6,12 +6,6 @@ import type { PositionWithCodeInterface } from '@services/interfaces/source-serv
 import type { AnsiOptionInterface, FormatCodeInterface } from '@components/interfaces/formatter-component.interface';
 
 /**
- * Export interfaces
- */
-
-export type * from '@components/interfaces/formatter-component.interface';
-
-/**
  * Formats a code snippet with optional line padding and custom actions
  *
  * @param code - The source code | stack to be formatted

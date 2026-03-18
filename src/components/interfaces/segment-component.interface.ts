@@ -1,4 +1,3 @@
-
 /**
  * A single decoded segment in a source map.
  *
