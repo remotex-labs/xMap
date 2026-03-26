@@ -7,7 +7,6 @@
         "rootDir": "src",
         "declaration": true,
         "skipLibCheck": true,
-        "declarationMap": true,
         "esModuleInterop": true,
         "isolatedModules": true,
         "moduleDetection": "force",
@@ -39,5 +38,8 @@
         "dist",
         "node_modules",
         "**/*.spec.ts"
+    ],
+    "references": [
+        { "path": "./tsconfig.spec.json" }
     ]
 }
