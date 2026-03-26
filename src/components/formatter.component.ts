@@ -3,7 +3,13 @@
  */
 
 import type { PositionWithCodeInterface } from '@services/interfaces/source-service.interface';
-import type { AnsiOptionInterface, FormatCodeInterface } from '@components/interfaces/formatter-component.interface';
+import type { AnsiOptionInterface, FormatCodeInterface, ErrorCodeType } from '@components/interfaces/formatter-component.interface';
+
+/**
+ * Exports
+ */
+
+export type * from '@components/interfaces/formatter-component.interface';
 
 /**
  * Formats a code snippet with optional line padding and custom actions
@@ -82,7 +88,9 @@ export function formatCode(code: string, options: FormatCodeInterface = {}): str
  * @since 1.0.0
  */
 
-export function formatErrorCode(sourcePosition: PositionWithCodeInterface, ansiOption?: AnsiOptionInterface): string {
+export function formatErrorCode(
+    sourcePosition: PositionWithCodeInterface | ErrorCodeType, ansiOption?: AnsiOptionInterface
+): string {
     const { code, line: errorLine, column: errorColumn, startLine } = sourcePosition;
 
     // Validate line and column numbers

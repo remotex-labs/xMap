@@ -5,6 +5,12 @@
 import type { ParsedStackTraceInterface, StackFrameInterface } from '@components/interfaces/parser-component.interface';
 
 /**
+ * Exports
+ */
+
+export type * from '@components/interfaces/parser-component.interface';
+
+/**
  * Regular expression patterns for different JavaScript engines' stack traces
  *
  * @since 2.1.0

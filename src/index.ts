@@ -2,17 +2,11 @@
 export type * from '@services/interfaces/source-service.interface';
 export type * from '@services/interfaces/resolve-service.interface';
 export type * from '@components/interfaces/segment-component.interface';
-export type * from '@components/interfaces/parser-component.interface';
-export type * from '@components/interfaces/formatter-component.interface';
-export type * from '@components/interfaces/highlighter-component.interface';
 
 // Export components
 export * from '@components/path.component';
-export * from '@components/parser.component';
 export * from '@components/base64.component';
 export * from '@components/segment.component';
-export * from '@components/formatter.component';
-export * from '@components/highlighter.component';
 
 // export service
 export * from '@services/source.service';

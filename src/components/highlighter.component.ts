@@ -15,6 +15,12 @@ import { SyntaxKind } from 'typescript';
 import { xterm } from '@remotex-labs/xansi/xterm.component';
 
 /**
+ * Exports
+ */
+
+export type * from '@components/interfaces/highlighter-component.interface';
+
+/**
  * Default color scheme for semantic highlighting
  *
  * @remarks

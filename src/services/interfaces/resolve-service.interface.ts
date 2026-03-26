@@ -138,4 +138,16 @@ export interface FormatStackFrameInterface extends StackFrameInterface {
      */
 
     format: string;
+
+    /**
+     * Starting line number of the highlighted code fragment.
+     *
+     * @remarks
+     * Used together with {@link code} to indicate the first line displayed
+     * in the extracted source context.
+     *
+     * @since 5.0.1
+     */
+
+    stratLine?: number;
 }
