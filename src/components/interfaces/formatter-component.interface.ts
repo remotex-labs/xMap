@@ -2,6 +2,7 @@
  * Import will remove at compile time
  */
 
+import type { PositionWithCodeInterface } from '@services/interfaces/source-service.interface';
 import type { ColorFunctionType } from '@components/interfaces/highlighter-component.interface';
 
 /**
@@ -74,3 +75,16 @@ export interface AnsiOptionInterface {
 
     color: ColorFunctionType,
 }
+
+/**
+ * A compact error position type used when only location and code metadata are needed.
+ *
+ * @remarks
+ * This type includes the source code content and the minimal location fields required
+ * to render or highlight an error snippet.
+ *
+ * @see PositionWithCodeInterface
+ * @since 1.0.0
+ */
+
+export type ErrorCodeType = Pick<PositionWithCodeInterface, 'code' | 'line' | 'column' | 'startLine'>;

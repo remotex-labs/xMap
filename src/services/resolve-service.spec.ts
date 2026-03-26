@@ -113,7 +113,7 @@ describe('resolve.service', () => {
             expect(frame.functionName).toBe('resolvedFn');
 
             expect(entry.format).toContain('darkGray(/src/index.ts)');
-            expect(entry.code).toBe('EC(HL(const x = 1;))');
+            expect(entry.code).toBe('const x = 1;');
         });
 
         test('prepends sourceRoot when present and frame is not http(s)', () => {
@@ -177,7 +177,7 @@ describe('resolve.service', () => {
 
             const entry = stackEntry(frame, options);
             expect(entry).toBeDefined();
-            expect(entry?.code).toBe('EC(HL(mapped();))');
+            expect(entry?.code).toBe('mapped();');
 
             expect(getPositionWithCode).toHaveBeenCalledWith(
                 10,

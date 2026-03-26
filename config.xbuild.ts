@@ -19,14 +19,19 @@ export const config: xBuildConfig = {
     common: {
         esbuild: {
             bundle: true,
-            minify: true,
+            minify: false,
             target: [ `node${ version.slice(1) }` ],
             platform: 'node',
             packages: 'external',
             sourcemap: true,
             sourceRoot: `https://github.com/remotex-lab/xmap/tree/v${ pkg.version }/`,
+            minifySyntax: true,
+            minifyIdentifiers: true,
             entryPoints: {
-                'index': 'src/index.ts'
+                'index': 'src/index.ts',
+                'parser.component': 'src/components/parser.component.ts',
+                'formatter.component': 'src/components/formatter.component.ts',
+                'highlighter.component': 'src/components/highlighter.component.ts'
             }
         }
     },

@@ -13,8 +13,6 @@ import type { ParsedStackTraceInterface, StackFrameInterface } from '@components
 
 import { Bias } from '@components/segment.component';
 import { xterm } from '@remotex-labs/xansi/xterm.component';
-import { formatErrorCode } from '@components/formatter.component';
-import { highlightCode } from '@components/highlighter.component';
 
 /**
  * Formats a stack frame into a single display line.
@@ -72,11 +70,9 @@ export function stackSourceEntry(position: PositionWithCodeInterface, frame: Sta
 
     return {
         ...frame,
+        code: position.code,
         format: formatStackLine(frame),
-        code: formatErrorCode(
-            { ...position, code: highlightCode(position.code) },
-            { color: xterm.brightPink }
-        )
+        stratLine: position.startLine
     };
 }
 
