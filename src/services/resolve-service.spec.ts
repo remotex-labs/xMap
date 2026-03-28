@@ -57,7 +57,7 @@ describe('resolve.service', () => {
     describe('formatStackLine', () => {
         test('returns frame.source when frame.fileName is missing', () => {
             const frame = makeFrame({ fileName: undefined, source: 'RAW_FRAME' });
-            expect(formatStackLine(frame)).toBe('RAW_FRAME');
+            expect(formatStackLine(frame)).toBe('at darkGray(RAW_FRAME)');
         });
 
         test('appends #L<line> when fileName is an http(s) url', () => {
@@ -86,7 +86,7 @@ describe('resolve.service', () => {
         test('mutates the frame with resolved position and returns formatted entry + code', () => {
             const frame = makeFrame({
                 functionName: 'origFn',
-                fileName: '/dist/bundle.js',
+                fileName: 'dist/bundle.js',
                 line: 999,
                 column: 999
             });
@@ -95,7 +95,7 @@ describe('resolve.service', () => {
                 name: 'resolvedFn',
                 line: 3,
                 column: 7,
-                source: '/src/index.ts',
+                source: 'src/index.ts',
                 sourceRoot: null,
                 sourceIndex: 0,
                 generatedLine: 1,
@@ -109,10 +109,10 @@ describe('resolve.service', () => {
 
             expect(frame.line).toBe(3);
             expect(frame.column).toBe(7);
-            expect(frame.fileName).toBe('/src/index.ts');
+            expect(frame.fileName).toBe('dist/bundle.js');
             expect(frame.functionName).toBe('resolvedFn');
 
-            expect(entry.format).toContain('darkGray(/src/index.ts)');
+            expect(entry.format).toContain('darkGray(dist/bundle.js)');
             expect(entry.code).toBe('const x = 1;');
         });
 
@@ -197,8 +197,7 @@ describe('resolve.service', () => {
 
             const fakeSource = { getPositionWithCode: xJet.fn().mockReturnValue(null) } as any;
             const entryB = stackEntry(frame, { getSource: () => fakeSource });
-            expect(entryB).toBeDefined();
-            expect(entryB?.code).toBeUndefined();
+            expect(entryB).toBeUndefined();
         });
     });
 

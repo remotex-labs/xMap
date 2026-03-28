@@ -57,6 +57,19 @@ export interface ResolveOptionsInterface {
     linesBefore?: number;
 
     /**
+     * Line offset applied to resolved source positions.
+     *
+     * @remarks
+     * This value is added to resolved line numbers before formatted stack entries are created.
+     * It is useful when the source context comes from a shifted or combined source, where the
+     * displayed line numbers need to be adjusted to match the original file.
+     *
+     * @since 5.1.0
+     */
+
+    lineOffset?: number;
+
+    /**
      * Whether to include native (built-in) stack frames in the output.
      *
      * @defaultValue Based on `ConfigurationService.verbose` setting
@@ -150,4 +163,11 @@ export interface FormatStackFrameInterface extends StackFrameInterface {
      */
 
     stratLine?: number;
+
+    /**
+     * Root URL for resolving the source
+     * @since 5.1.0
+     */
+
+    sourceRoot?: string | null;
 }

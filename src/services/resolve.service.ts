@@ -28,10 +28,9 @@ import { xterm } from '@remotex-labs/xansi/xterm.component';
  */
 
 export function formatStackLine(frame: StackFrameInterface): string {
-    let fileName = frame.fileName;
-    if (!fileName) return frame.source ?? '';
-
-    if(fileName.startsWith('http'))
+    let fileName = frame.fileName ?? frame.source ?? '';
+    const functionName = frame.functionName ? `${ frame.functionName } ` : '';
+    if (fileName.startsWith('http'))
         fileName += `#L${ frame.line }`;
 
     const position =
@@ -39,7 +38,7 @@ export function formatStackLine(frame: StackFrameInterface): string {
             ? xterm.gray(`[${ frame.line }:${ frame.column }]`)
             : '';
 
-    return `at ${ frame.functionName ?? '' } ${ xterm.darkGray(fileName) } ${ position }`
+    return `at ${ functionName }${ xterm.darkGray(fileName) } ${ position }`
         .trim();
 }
 
@@ -48,12 +47,15 @@ export function formatStackLine(frame: StackFrameInterface): string {
  *
  * @param position - Resolved position and extracted code context for the frame.
  * @param frame - Stack frame to enrich.
- * @returns Formatted stack frame entry containing `format` and optional `code`.
+ * @returns Formatted stack frame entry containing `format`, optional `code`, and the source snippet start line.
  *
  * @remarks
  * This function mutates `frame` with resolved `line`, `column`, `fileName`, and optionally `functionName`.
- * It formats the stack line with {@link formatStackLine} and highlights code with {@link highlightCode}
- * before passing it to {@link formatErrorCode}.
+ * When `position.sourceRoot` is present and the source is not an HTTP URL, `frame.fileName` is prefixed with it.
+ * It formats the stack line with {@link formatStackLine} and preserves the extracted code context for rendering.
+ *
+ * @see StackFrameInterface
+ * @see PositionWithCodeInterface
  *
  * @since 5.0.0
  */
@@ -61,10 +63,9 @@ export function formatStackLine(frame: StackFrameInterface): string {
 export function stackSourceEntry(position: PositionWithCodeInterface, frame: StackFrameInterface): FormatStackFrameInterface {
     frame.line = position.line;
     frame.column = position.column;
-    frame.fileName = position.source;
-    if(position.name) frame.functionName = position.name;
+    if (position.name) frame.functionName = position.name;
 
-    if(position.sourceRoot && !position.source.startsWith('http')) {
+    if (position.sourceRoot && !position.source.startsWith('http')) {
         frame.fileName = `${ position.sourceRoot }${ position.source }`;
     }
 
@@ -72,7 +73,8 @@ export function stackSourceEntry(position: PositionWithCodeInterface, frame: Sta
         ...frame,
         code: position.code,
         format: formatStackLine(frame),
-        stratLine: position.startLine
+        stratLine: position.startLine,
+        sourceRoot: position.sourceRoot
     };
 }
 
@@ -87,6 +89,9 @@ export function stackSourceEntry(position: PositionWithCodeInterface, frame: Sta
  * Frames marked as native (`frame.native === true`) are excluded unless `options.withNativeFrames` is true.
  * If a source is available via `options.getSource`, the frame is enriched with a highlighted code snippet.
  *
+ * @see ResolveOptionsInterface
+ * @see FormatStackFrameInterface
+ *
  * @since 5.0.0
  */
 
@@ -95,13 +100,21 @@ export function stackEntry(frame: StackFrameInterface, options?: ResolveOptionsI
     if (!frame.line && !frame.column && !frame.fileName && !frame.functionName) return;
 
     const source = options?.getSource?.(frame.fileName ?? '');
-    if(source && frame.line && frame.column) {
+    if (source && frame.line && frame.column) {
         const position = source.getPositionWithCode(frame.line, frame.column, options?.bias ?? Bias.BOUND, {
             linesAfter: options?.linesAfter ?? 4,
             linesBefore: options?.linesBefore ?? 3
         });
 
-        if(position) return stackSourceEntry(position, frame);
+        if (position) {
+            position.line += options?.lineOffset ?? 0;
+            position.endLine += options?.lineOffset ?? 0;
+            position.startLine += options?.lineOffset ?? 0;
+
+            return stackSourceEntry(position, frame);
+        }
+
+        return undefined;
     }
 
     return {
