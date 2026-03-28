@@ -46,6 +46,6 @@ jobs:
         run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Publish
-        run: pnpm publish --access public --no-git-checks --provenance --dry-run
+        run: pnpm publish --access public --no-git-checks --provenance
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.REMOTEX_LAB_TOKEN }}
