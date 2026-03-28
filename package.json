@@ -35,10 +35,10 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/remotex-lab/xMap.git"
+        "url": "git+https://github.com/remotex-labs/xMap.git"
     },
     "bugs": {
-        "url": "https://github.com/remotex-lab/xMap/issues"
+        "url": "https://github.com/remotex-labs/xMap/issues"
     },
     "keywords": [
         "cli",
