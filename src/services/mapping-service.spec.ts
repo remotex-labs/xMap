@@ -1,5 +1,5 @@
 /**
- * Import will remove at compile time
+ * Type-only imports erased during TypeScript compilation.
  */
 
 import type { SourceMappingType } from '@services/interfaces/mapping-service.interface';
@@ -150,10 +150,15 @@ describe('validateSourceMappingString', () => {
         expect(() => instance.decode('AAAA;AA;AAA;AAAAAAA;')).not.toThrow();
     });
 
-    test('should reject an empty string', () => {
-        expect(() => instance.decode('')).toThrow(
-            'Invalid mappings string: contains characters outside the VLQ alphabet.'
+    test('should reject a mapping with an empty segment instead of decoding NaN', () => {
+        expect(() => instance.decode('AAAA,,IAAM')).toThrow(
+            'Error decoding mappings at line 1: Invalid segment: expected at least a generated column delta, received an empty segment.'
         );
+    });
+
+    test('should accept an empty string as a map that mapped nothing', () => {
+        expect(() => instance.decode('')).not.toThrow();
+        expect(instance.encode()).toBe('');
     });
 
     test('should reject a mapping with invalid characters', () => {
@@ -262,10 +267,12 @@ describe('decodeSourceMappingArray', () => {
 
         callDecodeArray(instance, encodedMap, 2, 3);
 
+        // generatedLine is renumbered from the slot the line lands in, not carried over from the
+        // input - both segments share slot 0, so both answer at generated line 1
         expect(instance.lines).toEqual([
             [
-                { line: 1, column: 1, nameIndex: 3, sourceIndex: 5, generatedLine: 3, generatedColumn: 2 },
-                { line: 1, column: 1, nameIndex: 6, sourceIndex: 8, generatedLine: 6, generatedColumn: 2 }
+                { line: 1, column: 1, nameIndex: 3, sourceIndex: 5, generatedLine: 1, generatedColumn: 2 },
+                { line: 1, column: 1, nameIndex: 6, sourceIndex: 8, generatedLine: 1, generatedColumn: 2 }
             ]
         ]);
     });
@@ -413,6 +420,71 @@ describe('getSegment', () => {
         });
     });
 
+    test('should return null for an inexact column with BOUND bias', () => {
+        // segments sit at generated columns 1, 5 and 10 - BOUND reaches one column either way, no further
+        expect(instance.getSegment(1, 3)).toBeNull();
+        expect(instance.getSegment(1, 7)).toBeNull();
+        expect(instance.getSegment(1, 8)).toBeNull();
+    });
+
+    test('should return the segment one column above the target with BOUND bias', () => {
+        expect(instance.getSegment(1, 4)).toEqual({
+            line: 1,
+            column: 3,
+            generatedColumn: 5,
+            sourceIndex: 1,
+            generatedLine: 1,
+            nameIndex: null
+        });
+
+        expect(instance.getSegment(1, 9)).toEqual({
+            line: 1,
+            column: 6,
+            generatedColumn: 10,
+            sourceIndex: 2,
+            generatedLine: 1,
+            nameIndex: null
+        });
+    });
+
+    test('should return the segment one column below the target with BOUND bias', () => {
+        expect(instance.getSegment(1, 6)).toEqual({
+            line: 1,
+            column: 3,
+            generatedColumn: 5,
+            sourceIndex: 1,
+            generatedLine: 1,
+            nameIndex: null
+        });
+
+        expect(instance.getSegment(1, 2)).toEqual({
+            line: 1,
+            column: 1,
+            generatedColumn: 1,
+            sourceIndex: 0,
+            generatedLine: 1,
+            nameIndex: null
+        });
+    });
+
+    test('should return the last segment of the line when the target is one column past it', () => {
+        expect(instance.getSegment(1, 11)).toEqual({
+            line: 1,
+            column: 6,
+            generatedColumn: 10,
+            sourceIndex: 2,
+            generatedLine: 1,
+            nameIndex: null
+        });
+    });
+
+    test('should return null past either end of the line with BOUND bias', () => {
+        // nothing within one column of the first segment at 1 or the last at 10
+        expect(instance.getSegment(1, -1)).toBeNull();
+        expect(instance.getSegment(1, 12)).toBeNull();
+        expect(instance.getSegment(1, 40)).toBeNull();
+    });
+
     test('should return lower bound segment with LOWER_BOUND bias', () => {
         expect(instance.getSegment(1, 7, Bias.LOWER_BOUND)).toEqual({
             line: 1,
@@ -433,6 +505,12 @@ describe('getSegment', () => {
             generatedLine: 1,
             nameIndex: null
         });
+    });
+
+    test('should not apply the BOUND slack under a one-sided bias', () => {
+        // column 6 sits one above the segment at 5, which BOUND would answer with - UPPER_BOUND must not
+        expect(instance.getSegment(1, 6, Bias.UPPER_BOUND)?.generatedColumn).toBe(10);
+        expect(instance.getSegment(1, 4, Bias.LOWER_BOUND)?.generatedColumn).toBe(1);
     });
 
     test('should return null when no segment is below the target column (LOWER_BOUND)', () => {
@@ -556,9 +634,10 @@ describe('getOriginalSegment', () => {
     });
 
     test('should return closest upper bound with single candidate', () => {
+        // second line slot, so the segment answers at generated line 2
         expect(instance.getOriginalSegment(2, 4, 1, Bias.UPPER_BOUND)).toEqual({
             generatedColumn: 1,
-            generatedLine: 1,
+            generatedLine: 2,
             nameIndex: null,
             column: 6,
             sourceIndex: 1,
@@ -567,9 +646,10 @@ describe('getOriginalSegment', () => {
     });
 
     test('should return closest lower bound with single candidate', () => {
+        // third line slot, so the segment answers at generated line 3
         expect(instance.getOriginalSegment(3, 5, 2, Bias.LOWER_BOUND)).toEqual({
             generatedColumn: 1,
-            generatedLine: 1,
+            generatedLine: 3,
             nameIndex: null,
             column: 3,
             sourceIndex: 2,
@@ -579,6 +659,10 @@ describe('getOriginalSegment', () => {
 
     test('should return null with BOUND bias and no exact match', () => {
         expect(instance.getOriginalSegment(1, 6, 0, Bias.BOUND)).toBeNull();
+    });
+
+    test('should return null with BOUND bias when the source line holds no segments', () => {
+        expect(instance.getOriginalSegment(99, 6, 0, Bias.BOUND)).toBeNull();
     });
 });
 
