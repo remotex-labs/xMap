@@ -1,5 +1,5 @@
 /**
- * Import will remove at compile time
+ * Type-only imports erased during TypeScript compilation.
  */
 
 import type { Bias } from '@components/segment.component';
@@ -88,8 +88,8 @@ export interface ResolveOptionsInterface {
     /**
      * Resolves a {@link SourceService} for the provided path.
      *
-     * @param path - File path or URL to resolve.
-     * @returns The source service when available, otherwise `null`/`undefined`.
+     * @param path - File path or URL to resolve
+     * @returns The source service when available, otherwise `null` or `undefined`
      *
      * @remarks
      * When provided, the resolver uses this callback to enrich frames with highlighted code context.

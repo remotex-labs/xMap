@@ -1,5 +1,5 @@
 /**
- * Import will remove at compile time
+ * Type-only imports erased during TypeScript compilation.
  */
 
 import type { ResolveOptionsInterface } from '@services/interfaces/resolve-service.interface';
@@ -71,6 +71,18 @@ describe('resolve.service', () => {
             const out = formatStackLine(frame);
             expect(out).toContain('https://example.com/app.js#L10');
             expect(out).toContain('gray([10:2])');
+        });
+
+        test('omits #L when an http(s) frame carries no line number', () => {
+            const frame = makeFrame({ fileName: 'https://cdn.example.com/app.js', line: undefined });
+
+            expect(formatStackLine(frame)).not.toContain('#L');
+        });
+
+        test('does not treat a local file merely named http* as a url', () => {
+            const frame = makeFrame({ fileName: 'httpClient.ts', line: 4, column: 1 });
+
+            expect(formatStackLine(frame)).not.toContain('#L');
         });
 
         test('omits the [line:column] suffix unless both are present', () => {
@@ -197,7 +209,9 @@ describe('resolve.service', () => {
 
             const fakeSource = { getPositionWithCode: xJet.fn().mockReturnValue(null) } as any;
             const entryB = stackEntry(frame, { getSource: () => fakeSource });
-            expect(entryB).toBeUndefined();
+            expect(entryB).toBeDefined();
+            expect(entryB?.code).toBeUndefined();
+            expect(entryB?.format).toContain('darkGray(/dist/bundle.js)');
         });
     });
 
