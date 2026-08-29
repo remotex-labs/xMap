@@ -1,5 +1,5 @@
 /**
- * Import will remove at compile time
+ * Type-only imports erased during TypeScript compilation.
  */
 
 import type { PositionWithCodeInterface } from '@services/interfaces/source-service.interface';
@@ -33,7 +33,15 @@ export interface FormatCodeInterface {
     padding?: number;
 
     /**
-     * The starting line number for formatting
+     * The 1-based number of the first line held in the code.
+     *
+     * @remarks
+     * The first rendered line carries this number, so a snippet starting at line 10 renders
+     * `10` against its first line rather than `1`.
+     *
+     * `formatErrorCode` and the `startLine` on `PositionWithCodeInterface` count the same way,
+     * so a snippet position passes through unchanged.
+     *
      * @since 1.0.0
      */
 
