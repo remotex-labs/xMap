@@ -142,4 +142,5 @@ import { highlightCode } from '@remotex-labs/xmap/highlighter.component';
 
 - [Release Notes](release)
 - [Source Service](services/source)
+- [Resolve Service](services/resolve)
 - [Parse](components/parse)

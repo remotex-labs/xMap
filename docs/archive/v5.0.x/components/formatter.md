@@ -6,10 +6,13 @@ with line numbers, custom highlighting, and error indicators. This document cove
 
 ## Imports
 
-You can import the ANSI component in two ways:
+You can import the formatter utilities in two ways:
 
 ```ts
-import { formatCode } from '@remotex-labs/xmap/formatter.component';
+import { formatCode, formatErrorCode } from '@remotex-labs/xmap';
+
+// or
+import { formatCode, formatErrorCode } from '@remotex-labs/xmap/formatter.component';
 ```
 
 ## formatCode
@@ -19,7 +22,7 @@ This is particularly useful for displaying code in documentation, error messages
 
 ![image](/images/formatCode.png)
 
-### Basic Usage for `formatErrorCode`
+### Basic Usage for `formatCode`
 
 ```ts
 import { formatCode } from '@remotex-labs/xmap/formatter.component';
@@ -47,7 +50,7 @@ The `formatCode` function accepts an options object with the following propertie
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
 | `padding` | number | 10 | The amount of padding for line numbers |
-| `startLine` | number | 0 | The starting line number (0-based) |
+| `startLine` | number | 0 | A 0-based line offset (0 means the first rendered line is numbered 1) |
 | `action` | object | undefined | Custom action for specific lines |
 
 ### Custom Line Actions
@@ -74,7 +77,7 @@ The callback function receives:
 - `padding`: The current padding value
 - `lineNumber`: The current line number
 
-### `formatErrorCode` Examples
+### `formatCode` Examples
 
 **Basic formatting with custom padding:**
 
@@ -153,9 +156,13 @@ Output:
 The `formatErrorCode` function is specialized for highlighting errors in code snippets.
 It formats the code and adds a visual indicator (caret symbol `^`) pointing to the exact error location.
 
+In most cases you should not build `sourcePosition` manually. Prefer `SourceService.getPositionWithCode(...)`, which
+provides a `PositionWithCodeInterface` where `startLine`/`endLine` are 0-based indices into the original source content
+(and `line`/`column` are 1-based coordinates of the error).
+
 ### Basic Usage
 
-```text
+```ts
 import { formatErrorCode } from '@remotex-labs/xmap/formatter.component';
 
 const sourcePosition = {
@@ -163,7 +170,7 @@ const sourcePosition = {
     line: 2,
     column: 13,
     startLine: 0,
-    endLine: 0,
+    endLine: 2,
     name: null,
     source: '',
     sourceRoot: null,
@@ -200,7 +207,6 @@ const formatted = formatErrorCode(sourcePosition, ansiOption);
 The object allows: `ansiOption`
 
 - `color`: Function that applies color to the error indicator
-- `reset`: String to reset formatting (optional)
 
 ::: tip 🎨 Colors
 Any `@remotex-labs/xansi` style works as the `color` function - pass `xterm.red` straight in.
@@ -224,7 +230,7 @@ const sourcePosition = {
     line: 2,
     column: 13,
     startLine: 0,
-    endLine: 0,
+    endLine: 5,
     name: null,
     source: '',
     sourceRoot: null,
@@ -265,7 +271,7 @@ const sourcePosition = {
     line: 2,
     column: 13,
     startLine: 0,
-    endLine: 0,
+    endLine: 5,
     name: null,
     source: '',
     sourceRoot: null,
@@ -337,4 +343,4 @@ if (errorPosition) {
 
 - [Highlighter](highlighter)
 - [Source Service](../services/source)
-- [Getting Started](../guide)
+- [Resolve Service](../services/resolve)
