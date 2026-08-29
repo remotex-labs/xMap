@@ -1,5 +1,5 @@
 /**
- * Import will remove at compile time
+ * Type-only imports erased during TypeScript compilation.
  */
 
 import type { SegmentInterface, VLQOffsetInterface } from '@components/interfaces/segment-component.interface';
@@ -38,7 +38,7 @@ describe('createVlqOffset', () => {
         });
     });
 
-    test('namesOffset only — sourceIndex stays 0', () => {
+    test('namesOffset only - sourceIndex stays 0', () => {
         expect(createOffset(3)).toMatchObject({ nameIndex: 3, sourceIndex: 0 });
     });
 
@@ -144,6 +144,28 @@ describe('decodeSegmentVlq', () => {
     });
 });
 
+describe('decodeSegment empty-segment guard', () => {
+    test('throws instead of leaving the column accumulator NaN', () => {
+        const offset = createOffset();
+        expect(() => decodeSegment(offset, []))
+            .toThrow('Invalid segment: expected at least a generated column delta, received an empty segment.');
+    });
+
+    test('leaves the running offset untouched when it rejects', () => {
+        const offset = createOffset();
+        decodeSegment(offset, [ 4, 0, 0, 5 ]);
+        const before = { ...offset };
+
+        expect(() => decodeSegment(offset, [])).toThrow();
+        expect(offset).toEqual(before);
+    });
+
+    test('still accepts a single-field segment', () => {
+        const offset = createOffset();
+        expect(decodeSegment(offset, [ 4 ]).generatedColumn).toBe(5);
+    });
+});
+
 describe('decodeSegmentRaw', () => {
     test('"AAAA" decodes to the all-ones 1-based segment', () => {
         const offset = createOffset();
@@ -185,7 +207,7 @@ describe('decodeSegmentRaw', () => {
     });
 
     test('decodes a segment with a name (5 VLQ values)', () => {
-        // AAAAA = [0,0,0,0,0] — all zeros including nameIdx
+        // AAAAA = [0,0,0,0,0] - all zeros including nameIdx
         const offset = createOffset();
         const seg = decodeSegmentRaw(offset, 'AAAAA');
 
@@ -424,7 +446,7 @@ describe('validateSegment', () => {
     });
 
     test('reports the first failing positional field (line before column)', () => {
-        // Both line and column are invalid — should report 'line' first
+        // Both line and column are invalid - should report 'line' first
         expect(() => validateSegment({ ...valid, line: 0, column: 0 }))
             .toThrow('\'line\'');
     });
