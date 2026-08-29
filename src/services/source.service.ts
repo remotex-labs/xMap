@@ -1,5 +1,5 @@
 /**
- * Import will remove at compile time
+ * Type-only imports erased during TypeScript compilation.
  */
 
 import type { SourceOptionsInterface } from '@services/interfaces/source-service.interface';
@@ -114,7 +114,7 @@ export class SourceService {
     constructor(source: SourceMapInterface | string, offset?: number);
 
     /**
-     * Creates a source service with explicit file path and optional line offset.
+     * Creates a source service with an explicit file path and optional line offset.
      *
      * @param source - Source map payload as object or JSON string
      * @param file - Generated file path override
@@ -141,7 +141,7 @@ export class SourceService {
      * @param fileOrOffset - Generated file path override, or generated line offset when numeric
      * @param offset - Generated line offset when `fileOrOffset` is a file path
      *
-     * @throws Error - If file path is missing after normalization
+     * @throws Error - If a file path is missing after normalization
      * @throws Error - If source map input is invalid or unsupported
      *
      * @since 5.0.0
@@ -174,8 +174,14 @@ export class SourceService {
      * @throws Error - If no source services are provided
      *
      * @remarks
-     * Name and source indices are offset during decode to preserve index
+     * Name and source indices are offset during decoding to preserve index
      * correctness across all merged source maps.
+     *
+     * Concatenation decides the layout: each map occupies the generated lines that follow the
+     * previous one, so a `lineOffset` that an input carried does not survive the merge.
+     *
+     * Every map pads its content to the length of its own `sources` before the next map appends,
+     * so the two arrays stay index-aligned even where a map omits its content.
      *
      * @example
      * ```ts
@@ -199,7 +205,12 @@ export class SourceService {
 
                 return source.sourceRoot + sourceFile;
             }));
-            result.sourcesContent.push(...source.sourcesContent);
+
+            // pad to `sources.length` - a map that omits content would otherwise shift every
+            // later map's content onto the wrong file
+            for (let i = 0; i < source.sources.length; i++) {
+                result.sourcesContent.push(source.sourcesContent[i]);
+            }
         }
 
         return result;
@@ -247,13 +258,25 @@ export class SourceService {
      * @returns Position details, or `null` when no segment matches
      *
      * @remarks
+     * `line` and `column` on the result are the original position the lookup resolved to, while
+     * `generatedLine` and `generatedColumn` echo the arguments rather than describing the segment
+     * that answered. A one-sided bias resolves through a segment lying a few columns away, so
+     * echoing keeps the result aligned with the column an engine reports in a stack frame.
+     *
+     * The default {@link Bias.BOUND} answers within one column of the one you asked for, and returns
+     * `null` otherwise. A generated column a bundler emitted no mapping anywhere near is common, so a
+     * caller resolving a stack frame wants {@link Bias.LOWER_BOUND}.
+     *
      * The returned `name` can be `null` when the mapped segment has no
      * associated name index.
      *
      * @example
      * ```ts
      * const pos = source.getPosition(12, 8);
+     * pos.generatedColumn; // 8 - the column looked up
      * ```
+     *
+     * @see getPositionByOriginal - the reverse lookup, where the generated position is the answer
      *
      * @since 5.0.0
      */
@@ -270,8 +293,8 @@ export class SourceService {
             source: this.sources[segment.sourceIndex],
             sourceRoot: this.sourceRoot,
             sourceIndex: segment.sourceIndex,
-            generatedLine: segment.generatedLine,
-            generatedColumn: segment.generatedColumn
+            generatedLine: line,
+            generatedColumn: column
         };
     }
 
@@ -317,7 +340,14 @@ export class SourceService {
      * @returns Position details with extracted code context, or `null` when unavailable
      *
      * @remarks
-     * Default window uses `3` lines before and `4` lines after the target line.
+     * Default window uses `3` lines before and `4` lines after the target line, clamped to the
+     * bounds of the source content.
+     *
+     * `startLine` and `endLine` are the 1-based numbers of the first and last line held in `code`,
+     * counted the same way as `line`, so `line - startLine` is the offset of the error line within
+     * `code`.
+     * Both `formatErrorCode` and `formatCode` count the same way,
+     * so `startLine` passes to either one as-is.
      *
      * @example
      * ```ts
@@ -325,6 +355,9 @@ export class SourceService {
      *   linesBefore: 2,
      *   linesAfter: 2
      * });
+     *
+     * pos.startLine;             // 10 - the first line held in pos.code
+     * pos.line - pos.startLine;  // 2  - the error line's offset within pos.code
      * ```
      *
      * @since 5.0.0
@@ -342,15 +375,15 @@ export class SourceService {
 
         const code = this.sourcesContent[position.sourceIndex].split('\n');
         const linePosition = (position.line ?? 1) - 1;
-        const startLine = Math.max(linePosition - settings.linesBefore, 0);
-        const endLine = Math.min(linePosition + settings.linesAfter, code.length - 1);
-        const relevantCode = code.slice(startLine, endLine + 1).join('\n');
+        const startIndex = Math.max(linePosition - settings.linesBefore, 0);
+        const endIndex = Math.min(linePosition + settings.linesAfter, code.length - 1);
+        const relevantCode = code.slice(startIndex, endIndex + 1).join('\n');
 
         return {
             ...position,
             code: relevantCode,
-            endLine: endLine,
-            startLine: startLine
+            endLine: endIndex + 1,
+            startLine: startIndex + 1
         };
     }
 
@@ -427,7 +460,7 @@ export class SourceService {
      *
      * @returns Parsed and validated source map object
      *
-     * @throws Error - If source map version is not `3`
+     * @throws Error - If the source map version is not `3`
      * @throws Error - If required keys are missing
      *
      * @remarks
@@ -465,23 +498,27 @@ export class SourceService {
      *
      * @param path - Path or URL candidate to evaluate
      *
-     * @returns `true` when the value starts with `http` or `https`, otherwise `false`
+     * @returns `true` when the value is an absolute `http` or `https` URL, otherwise `false`
      *
      * @remarks
-     * This helper is used to preserve absolute URL sources and avoid filesystem
-     * path normalization for remote resources.
+     * This helper preserves absolute URL sources and keeps filesystem path normalization
+     * away from remote resources.
+     *
+     * The scheme separator is part of the test, so a local file merely named `httpClient.ts`
+     * stays a path.
      *
      * @example
      * ```ts
      * SourceService['isURL']('https://cdn.example.com/app.ts'); // true
      * SourceService['isURL']('src/app.ts'); // false
+     * SourceService['isURL']('httpClient.ts'); // false
      * ```
      *
      * @since 5.0.0
      */
 
     private static isURL(path: string): boolean {
-        return path.startsWith('http') || path.startsWith('https');
+        return /^https?:\/\//i.test(path);
     }
 
     /**

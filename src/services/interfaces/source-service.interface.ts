@@ -104,14 +104,20 @@ export interface PositionInterface {
     sourceIndex: number;
 
     /**
-     * Line number in the generated code
+     * 1-based line number in the generated code that was looked up
      * @since 1.0.0
      */
 
     generatedLine: number;
 
     /**
-     * Column number in the generated code
+     * 1-based column number in the generated code that was looked up
+     *
+     * @remarks
+     * This is the position the caller asked about, echoed back. Under any bias other than
+     * an exact hit, the segment that answered the lookup sits a few columns away, so this
+     * stays aligned with the engine-reported column a stack frame carries.
+     *
      * @since 1.0.0
      */
 
@@ -150,14 +156,19 @@ export interface PositionWithCodeInterface extends PositionInterface {
     code: string;
 
     /**
-     * Ending line number of the code fragment
+     * 1-based number of the last line held in `code`
      * @since 1.0.0
      */
 
     endLine: number;
 
     /**
-     * Starting line number of the code fragment
+     * 1-based number of the first line held in `code`
+     *
+     * @remarks
+     * Counted the same way as `line`, so `line - startLine` is the offset of the error
+     * line within `code`.
+     *
      * @since 1.0.0
      */
 
