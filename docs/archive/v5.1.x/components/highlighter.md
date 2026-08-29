@@ -35,6 +35,11 @@ The function returns the same code string but with ANSI color codes inserted to 
 
 You can customize the highlighting by providing a partial color scheme:
 
+::: tip 🎨 Colors
+Every field is a plain `(text: string) => string`, so any `@remotex-labs/xansi` style drops in
+as-is. See [xAnsi](https://remotex-labs.github.io/xAnsi/).
+:::
+
 ```ts
 import { xterm } from '@remotex-labs/xansi/xterm.component';
 import { highlightCode } from '@remotex-labs/xmap/highlighter.component';
@@ -133,6 +138,7 @@ console.log(highlighted);
 ### Example 3: Using xterm Colors
 
 ```ts
+import { xterm } from '@remotex-labs/xansi/xterm.component';
 
 const colorfulTheme = {
     keywordColor: xterm.magentaBright,

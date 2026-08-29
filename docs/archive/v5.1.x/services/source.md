@@ -2,7 +2,7 @@
 
 A TypeScript service for validating and processing source maps.
 The `SourceService` class provides functionality for parsing and manipulating source maps,
-including retrieving position mappings, concatenating source maps, and getting code snippets based on mappings.
+including retrieving position mappings, merging multiple source maps, and extracting code snippets around mapped positions.
 
 ```ts
 import { SourceService, Bias } from '@remotex-labs/xmap';
@@ -59,7 +59,11 @@ const sourceService = new SourceService(sourceMapObj);
 ### Copying from Another SourceService
 
 ```ts
-const newSourceService = new SourceService(existingSourceService);
+// Copy by re-hydrating from the serialized source map payload
+const copyA = new SourceService(existingSourceService.getSourceObject());
+
+// or from JSON
+const copyB = new SourceService(existingSourceService.toString());
 ```
 
 ## Retrieving Position Information
@@ -100,7 +104,7 @@ if (position) {
 
 ## Working with Code Snippets
 
-The and `getPositionWithCode` and `getPositionWithContent` methods allow you to retrieve not just position information
+The `getPositionWithCode` and `getPositionWithContent` methods allow you to retrieve not just position information
 but also the associated source code:
 
 ```ts
@@ -119,29 +123,31 @@ const posWithCode = sourceService.getPositionWithCode(3, 10, Bias.BOUND, {
 if (posWithCode) {
   console.log(`Code snippet: 
 ${posWithCode.code}`);
-  console.log(`From line ${posWithCode.startLine} to ${posWithCode.endLine}`);
+  // Note: startLine/endLine are 0-based indices into the original source content.
+  console.log(`From line ${posWithCode.startLine + 1} to ${posWithCode.endLine + 1}`);
 }
 ```
 
 ## Source Map Manipulation
 
-### Concatenating Source Maps
+### Merging Source Maps
 
-You can combine multiple source maps using the method: `concat`
+You can merge multiple `SourceService` instances using `SourceService.assign(...)`.
 
 ```ts
-// Concat in-place (modifies the current instance)
-sourceService.concat(anotherSourceMap);
+import { SourceService } from '@remotex-labs/xmap';
 
-// Create a new instance with concatenated maps
-const combinedService = sourceService.concatNewMap(map1, map2, map3);
+const merged = SourceService.assign(mapA, mapB, mapC);
+
+// assign() returns a new service; if you need to force a specific generated file path:
+const mergedWithFile = new SourceService(merged.getSourceObject(), 'dist/bundle.js');
 ```
 
 ### Converting to JSON
 
 ```ts
 // Get the source map as a plain object
-const mapObject = sourceService.getMapObject();
+const mapObject = sourceService.getSourceObject();
 
 // Get the source map as a JSON string
 const jsonString = sourceService.toString();
@@ -152,11 +158,14 @@ const jsonString = sourceService.toString();
 ### Constructor
 
 ```ts
-constructor(source: SourceService | SourceMapInterface | string, file?: string | null)
+constructor();
+constructor(source: SourceMapInterface | string, offset?: number);
+constructor(source: SourceMapInterface | string, file?: string, offset?: number);
 ```
 
-- `source`: The source map data (another SourceService, a SourceMapInterface object, or a JSON string)
-- `file`: Optional file name for the generated bundle
+- `source`: The source map data (a `SourceMapInterface` object or a JSON string)
+- `file`: Optional generated file path override (required when the payload does not include `file`)
+- `offset`: Optional generated line offset applied during mapping decode
 
 ### Properties
 
@@ -178,9 +187,8 @@ constructor(source: SourceService | SourceMapInterface | string, file?: string |
 
 #### Map Manipulation
 
-- `getMapObject(): SourceMapInterface`
-- `concat(...maps: Array<SourceMapInterface | SourceService>): void`
-- `concatNewMap(...maps: Array<SourceMapInterface | SourceService>): SourceService`
+- `getSourceObject(): SourceMapInterface`
+- `SourceService.assign(...sources: Array<SourceService>): SourceService`
 - `toString(): string`
 
 ## Bias
@@ -205,11 +213,7 @@ enum Bias {
 
 ### `Bias.BOUND`
 
-`Bias.BOUND` is the default option when no bias is specified. It has no directional preference, meaning: `Bias.BOUND`
-
-- When searching for a mapping and there's no exact match at the specified position
-- The first suitable match that's found will be returned, regardless of whether it's before or after the target position
-- This is a good general-purpose option when you have no specific preference
+`Bias.BOUND` is the default. It returns a result only on an exact match for the requested column.
 
 ```ts
 // Using default bias (BOUND)
@@ -247,7 +251,7 @@ const position = sourceService.getPosition(10, 15, Bias.UPPER_BOUND);
 
 ### When to Use Different Bias Values
 
-- **Use (default)`Bias.BOUND`** when you have no specific preference and just want any relevant match
+- **Use (default) `Bias.BOUND`** when you need an exact mapping at the requested column (returns `null` otherwise)
 - **Use `Bias.LOWER_BOUND`** when debugging minified code and want to find what original source code generated a particular point in the output
 - **Use `Bias.UPPER_BOUND`** when you want to make sure you capture the mapping for code that might appear slightly after your target position
 
@@ -266,7 +270,7 @@ const errorPosition = sourceService.getPositionWithCode(1, 104, Bias.LOWER_BOUND
 // even if the exact character position isn't mapped
 ```
 
-n this case, using `Bias.LOWER_BOUND` ensures you get the mapping for the code segment that most likely contains the error,
+In this case, using `Bias.LOWER_BOUND` ensures you get the mapping for the code segment that most likely contains the error,
 even if the exact character position isn't mapped in the source map.
 
 ### Visual Representation
@@ -285,7 +289,7 @@ Positions:         1           2
 ```
 
 - If you query for a position between 1 and 2:
-  - : Could return either position 1 or 2 `Bias.BOUND`
+  - : Will return `null` if there is no exact match `Bias.BOUND`
   - : Will return position 1 `Bias.LOWER_BOUND`
   - : Will return position 2 `Bias.UPPER_BOUND`
 
@@ -313,8 +317,7 @@ if (errorPos) {
   
   // Format and display the error location
   console.log(formatErrorCode(errorPos, {
-    color: '\x1b[38;5;160m',  // Red color for error marker
-    reset: '\x1b[0m'          // Reset color
+    color: (text) => `\x1b[38;5;160m${ text }\x1b[0m`
   }));
 }
 ```
@@ -329,7 +332,7 @@ const mainSourceService = new SourceService(mainSourceMap);
 const moduleSourceService = new SourceService(moduleSourceMap);
 
 // Combine them into a single source map
-const combinedService = mainSourceService.concatNewMap(moduleSourceService);
+const combinedService = SourceService.assign(mainSourceService, moduleSourceService);
 
 // Use the combined source map for debugging
 const position = combinedService.getPosition(errorLine, errorColumn);
@@ -366,6 +369,6 @@ if (snippet) {
 
 ## See also
 
+- [Resolve Service](resolve)
 - [Parse](../components/parse)
-- [Formatter](../components/formatter)
-- [Getting Started](../guide)
+- [Path](../components/path)
