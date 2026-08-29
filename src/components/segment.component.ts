@@ -1,5 +1,5 @@
 /**
- * Import will remove at compile time
+ * Type-only imports erased during TypeScript compilation.
  */
 
 import type { VLQOffsetInterface, SegmentInterface } from '@components/interfaces/segment-component.interface';
@@ -15,7 +15,7 @@ import { decodeVLQ, encodeArrayVLQ } from '@components/base64.component';
  *
  * @remarks
  * Controls how the search behaves when an exact match is not found:
- * - `BOUND`: Returns the closest match
+ * - `BOUND`: Returns the element at the target, and nothing when the target is not present
  * - `LOWER_BOUND`: Returns the largest element less than or equal to the target
  * - `UPPER_BOUND`: Returns the smallest element greater than or equal to the target
  *
@@ -37,8 +37,8 @@ export const enum Bias {
  * @returns A new {@link VLQOffsetInterface} with all positional fields set to zero
  *
  * @remarks
- * This function initializes the mutable running state used by VLQ encoding/decoding
- * operations. The offset tracks cumulative deltas as segments are processed sequentially.
+ * This function initializes the mutable running state that VLQ encoding and decoding share.
+ * Each segment in turn adds its own deltas to that offset.
  *
  * All positional fields (line, column, generatedLine, generatedColumn) start at 0
  * because the Source Map v3 spec uses 0-based coordinates internally.
@@ -69,21 +69,22 @@ export function createOffset(namesOffset: number = 0, sourceOffset: number = 0):
     };
 }
 /**
- * Apply a single array of decoded VLQ deltas to the running offset and return
- * a fully resolved, **1-based** {@link SegmentInterface}.
+ * Applies one array of decoded VLQ deltas to the running offset.
  *
- * @param offset - Mutable VLQ running state; **updated in-place**.
+ * @param offset - Mutable VLQ running state, **updated in-place**
  * @param deltas - Raw integers from `decodeVLQ`: `[genCol, srcIdx, srcLine, srcCol, nameIdx?]`
  *
- * @returns A 1-based segment with all positions resolved
+ * @returns A fully resolved, **1-based** {@link SegmentInterface}
+ *
+ * @throws Error - If `deltas` is empty, as it is for an empty segment in a malformed mappings string
  *
  * @remarks
  * The Source Map v3 spec stores values as 0-based deltas from the previous segment.
- * This function advances the offset in-place and converts to 1-based output, so
- * callers never have to reason about the wire format.
+ * This function advances the offset in-place and converts to 1-based output,
+ * so callers never have to reason about the wire format.
  *
  * Delta array structure:
- * - `[0]`: Generated column delta (always present)
+ * - `[0]`: Generated column delta (always present - this function rejects a segment without it)
  * - `[1]`: Source file index delta (optional)
  * - `[2]`: Source line delta (optional)
  * - `[3]`: Source column delta (optional)
@@ -91,17 +92,17 @@ export function createOffset(namesOffset: number = 0, sourceOffset: number = 0):
  *
  * The offset parameter is mutated to reflect the new accumulated state.
  *
- * @example Decoding segment with name
+ * @example Decoding a segment that carries a name
  * ```ts
  * const offset = createOffset();
- * const segment = decodeSegment(offset, [4, 0, 0, 5, 0]);
+ * const decoded = decodeSegment(offset, [4, 0, 0, 5, 0]);
  * // { generatedLine: 1, generatedColumn: 5, line: 1, column: 6, sourceIndex: 0, nameIndex: 0 }
  * ```
  *
- * @example Decoding segment without name
+ * @example Decoding a segment without a name
  * ```ts
  * const offset = createOffset();
- * const segment = decodeSegment(offset, [10, 1, 2, 3]);
+ * const decoded = decodeSegment(offset, [10, 1, 2, 3]);
  * // { generatedLine: 1, generatedColumn: 11, line: 3, column: 4, sourceIndex: 1, nameIndex: null }
  * ```
  *
@@ -118,6 +119,10 @@ export function decodeSegment(offset: VLQOffsetInterface, deltas: Array<number>)
     const srcColDelta  = deltas[3];
     const nameIdxDelta = deltas[4]; // undefined when the segment carries no name
 
+    // without this the offset silently becomes NaN and poisons every later segment on the line
+    if (genColDelta === undefined)
+        throw new Error('Invalid segment: expected at least a generated column delta, received an empty segment.');
+
     offset.line            += srcLineDelta ?? 0;
     offset.column          += srcColDelta  ?? 0;
     offset.sourceIndex     += srcIdxDelta  ?? 0;
@@ -125,7 +130,6 @@ export function decodeSegment(offset: VLQOffsetInterface, deltas: Array<number>)
     if (nameIdxDelta !== undefined) offset.nameIndex += nameIdxDelta;
 
     return {
-        // +1 converts 0-based VLQ accumulator → 1-based public API
         line: offset.line + 1,
         column: offset.column + 1,
         generatedLine: offset.generatedLine + 1,
@@ -136,25 +140,25 @@ export function decodeSegment(offset: VLQOffsetInterface, deltas: Array<number>)
 }
 
 /**
- * Decode a single raw VLQ segment string into a resolved, **1-based** {@link SegmentInterface}.
+ * Decodes a single raw VLQ segment string into a resolved, **1-based** {@link SegmentInterface}.
  *
- * @param offset - Mutable VLQ running state; **updated in-place**.
+ * @param offset - Mutable VLQ running state, **updated in-place**
  * @param raw - A single VLQ-encoded segment string (e.g. `"AAAA"` or `"kBgB"`)
  *
  * @returns A 1-based segment with all positions resolved
  *
  * @remarks
- * Convenience wrapper around {@link decodeSegment} + {@link decodeVLQ}.
+ * Convenience wrapper around {@link decodeVLQ} and {@link decodeSegment}.
  * This function first decodes the Base64 VLQ string into an array of integers,
  * then processes those deltas to produce the final segment.
  *
- * The offset parameter is advanced to reflect the cumulative state.
+ * The call advances the offset to the cumulative state.
  *
  * @example Decoding a raw segment
  * ```ts
  * const offset = createOffset();
- * const segment = decodeSegmentRaw(offset, "AAAA");
- * // Decodes and applies the VLQ-encoded deltas
+ * const decoded = decodeSegmentRaw(offset, 'AAAA');
+ * // { line: 1, column: 1, generatedLine: 1, generatedColumn: 1, sourceIndex: 0, nameIndex: null }
  * ```
  *
  * @see {@link decodeVLQ} for Base64 VLQ decoding
@@ -168,16 +172,16 @@ export function decodeSegmentRaw(offset: VLQOffsetInterface, raw: string): Segme
 }
 
 /**
- * Encode a **1-based** {@link SegmentInterface} into a VLQ delta string.
+ * Encodes a **1-based** {@link SegmentInterface} into a VLQ delta string.
  *
- * @param offset - Mutable VLQ running state; **updated in-place**.
+ * @param offset - Mutable VLQ running state, **updated in-place**
  * @param seg - The 1-based segment to encode
  *
  * @returns A Base64 VLQ-encoded string representing the deltas
  *
  * @remarks
- * The 1-based public values are converted back to 0-based VLQ deltas so the
- * wire format stays spec-compliant with Source Map v3.
+ * This function converts the 1-based public values back to 0-based VLQ deltas,
+ * so the wire format stays spec-compliant with Source Map v3.
  *
  * This function:
  * 1. Converts 1-based positions to 0-based coordinates
@@ -190,7 +194,7 @@ export function decodeSegmentRaw(offset: VLQOffsetInterface, raw: string): Segme
  * - Source file index delta
  * - Source line delta
  * - Source column delta
- * - Name index delta (only if segment has a name)
+ * - Name index delta (only when the segment carries a name)
  *
  * @example Encoding a segment
  * ```ts
@@ -235,15 +239,15 @@ export function encodeSegment(offset: VLQOffsetInterface, seg: SegmentInterface)
 }
 
 /**
- * Validate all fields of a {@link SegmentInterface}.
+ * Validates all fields of a {@link SegmentInterface}.
  *
  * @param segment - The segment to validate
  *
- * @throws Error - on the first field that fails validation
+ * @throws Error - On the first field that fails validation
  *
  * @remarks
- * Ensures all positional values are finite numbers and that every 1-based
- * position is ≥ 1. Throws on the first invalid field with a descriptive message.
+ * Ensures every positional value is a finite number, and every 1-based position is at least 1.
+ * The first invalid field throws with a message naming it.
  *
  * Validation rules:
  * - `line`, `column`, `generatedLine`, `generatedColumn`: Must be finite and ≥ 1

@@ -118,8 +118,8 @@ export interface SegmentInterface {
  * Internal VLQ running-state used while incrementally encoding or decoding deltas.
  *
  * @remarks
- * All fields are **0-based** — the Source Map v3 wire format is 0-based throughout.
- * This type is an implementation detail; callers work with {@link SegmentInterface} instead.
+ * Every field is **0-based** - the Source Map v3 wire format counts from zero throughout.
+ * This type is an implementation detail, so callers work with {@link SegmentInterface} instead.
  *
  * The offset is mutated in-place as segments are processed sequentially, accumulating
  * deltas from the VLQ-encoded mappings string. This avoids repeated conversions between
@@ -180,7 +180,7 @@ export interface VLQOffsetInterface {
     generatedLine: number;
 
     /**
-     * 0-based running generated column — resets to 0 at the start of each line.
+     * The 0-based running generated column, reset to 0 at the start of each line.
      *
      * @remarks
      * Accumulates column deltas within the current generated line.
