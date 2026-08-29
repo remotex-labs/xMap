@@ -1,5 +1,5 @@
 /**
- * Import will remove at compile time
+ * Type-only imports erased during TypeScript compilation.
  */
 
 import type { PositionWithCodeInterface } from '@services/interfaces/source-service.interface';
@@ -57,6 +57,16 @@ describe('highlightCode', () => {
 
         expect(highlightedCode).toContain('brightPink: ');
         expect(highlightedCode).toContain('const');
+    });
+
+    test('should not let a custom scheme leak into later calls', () => {
+        const code = 'const x = "hi";';
+        const before = highlightCode(code);
+
+        highlightCode(code, { stringColor: (text: string) => `<<${ text }>>` });
+
+        expect(highlightCode(code)).toBe(before);
+        expect(highlightCode(code)).not.toContain('<<');
     });
 
     test('should highlight string literals in the code', () => {
@@ -248,8 +258,8 @@ describe('formatErrorCode', () => {
             column: 4,
             name: '',
             source: '',
-            endLine: 3,
-            startLine: 1
+            endLine: 4,
+            startLine: 2
         };
         const ansiOption = {
             color: xterm.red
@@ -268,7 +278,7 @@ describe('formatErrorCode', () => {
             source: '',
             column: 4,
             endLine: 3,
-            startLine: 0
+            startLine: 1
         };
 
         expect(formatErrorCode(sourcePosition)).toBe('      1 | line1\n    > 2 | line2\n        |    ^\n      3 | line3');
