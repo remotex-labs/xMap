@@ -29,6 +29,20 @@ const MASK = 0x1f;
 const CONT = 0x20;
 
 /**
+ * The largest magnitude that {@link encodeVLQ} can represent.
+ *
+ * @remarks
+ * Folding the sign bit into the low bit doubles the value that the 32-bit bitwise operators chunk,
+ * so the range stops one bit short of a signed 32-bit integer.
+ *
+ * Decimal: `1073741823` (`2^30 - 1`)
+ *
+ * @since 6.0.0
+ */
+
+const MAX_VLQ = 0x3fffffff;
+
+/**
  * Base64 character encoding table.
  *
  * @remarks
@@ -85,6 +99,8 @@ const DECODE = /*#__PURE__*/ new Uint8Array([
  *
  * @returns The Base64-encoded VLQ string representation
  *
+ * @throws Error - If the value is not an integer, or its magnitude exceeds `2^30 - 1`
+ *
  * @remarks
  * This function implements VLQ encoding with Base64 character mapping:
  * 1. Converts the value to unsigned format (negative numbers get sign bit)
@@ -98,6 +114,11 @@ const DECODE = /*#__PURE__*/ new Uint8Array([
  * - Continuation bit: 6th bit indicates if more chunks follow
  *
  * This encoding is commonly used in source maps for efficient delta encoding.
+ *
+ * The representable range is `±(2^30 - 1)`, one bit short of a signed 32-bit integer,
+ * since folding in the sign bit doubles the value that the chunking below has to hold.
+ * A value past the limit would wrap to a different number, so this function rejects it instead.
+ * Real source-map deltas stay orders of magnitude below the limit.
  *
  * @example Encoding positive number
  * ```ts
@@ -117,6 +138,11 @@ const DECODE = /*#__PURE__*/ new Uint8Array([
  * // 'A'
  * ```
  *
+ * @example Rejecting an unrepresentable value
+ * ```ts
+ * encodeVLQ(2 ** 30); // throws - would wrap to a negative number
+ * ```
+ *
  * @see {@link decodeVLQ} for decoding VLQ strings
  * @see {@link encodeArrayVLQ} for encoding multiple values
  *
@@ -124,6 +150,10 @@ const DECODE = /*#__PURE__*/ new Uint8Array([
  */
 
 export function encodeVLQ(value: number): string {
+    if (!Number.isInteger(value) || value > MAX_VLQ || value < -MAX_VLQ) {
+        throw new Error(`Invalid VLQ value: expected an integer within ±${ MAX_VLQ }, received ${ value }`);
+    }
+
     let vlq = value < 0 ? ((-value) * 2) | 1 : value * 2;
     let encoded = '';
 
@@ -186,7 +216,8 @@ export function encodeArrayVLQ(values: Array<number>): string {
  * @returns Array of decoded signed integers
  *
  * @throws {@link Error}
- * Thrown when encountering an invalid Base64 character or incomplete VLQ sequence
+ * Thrown when encountering an invalid Base64 character, an incomplete VLQ sequence, or a sequence
+ * whose value does not fit in 32 bits
  *
  * @remarks
  * This function implements VLQ decoding with Base64 character mapping:
@@ -198,10 +229,12 @@ export function encodeArrayVLQ(values: Array<number>): string {
  * The function validates:
  * - All characters are valid Base64 characters
  * - VLQ sequences are properly terminated (no incomplete sequences)
+ * - Values stay within the 32-bit range that JavaScript bit shifts can represent
  *
  * Error conditions:
  * - Invalid Base64 character: Reports the character and its position
  * - Incomplete sequence: Reports when the string ends mid-value
+ * - Over-long sequence: Reports when a value would need more than 32 bits
  *
  * @example Decoding single value
  * ```ts
@@ -222,6 +255,16 @@ export function encodeArrayVLQ(values: Array<number>): string {
  * } catch (err) {
  *   console.error(err.message);
  *   // "Invalid Base64 character: '@' at index 2"
+ * }
+ * ```
+ *
+ * @example Handling errors - over-long sequence
+ * ```ts
+ * try {
+ *   decodeVLQ('ggggggggA');
+ * } catch (err) {
+ *   console.error(err.message);
+ *   // "Invalid VLQ sequence: value exceeds the 32-bit range"
  * }
  * ```
  *
@@ -250,9 +293,11 @@ export function decodeVLQ(data: string): Array<number> {
         const code = data.charCodeAt(i);
         const digit = code < 128 ? DECODE[code] : 255;
 
-        if (digit === 255) {
+        if (digit === 255)
             throw new Error(`Invalid Base64 character: '${ data[i] }' at index ${ i }`);
-        }
+
+        if (shift > 30)
+            throw new Error('Invalid VLQ sequence: value exceeds the 32-bit range');
 
         value += (digit & MASK) << shift;
 
