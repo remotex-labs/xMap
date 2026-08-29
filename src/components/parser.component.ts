@@ -1,5 +1,5 @@
 /**
- * Import will remove at compile time
+ * Type-only imports erased during TypeScript compilation.
  */
 
 import type { ParsedStackTraceInterface, StackFrameInterface } from '@components/interfaces/parser-component.interface';
@@ -29,6 +29,22 @@ const PATTERNS = {
     JAVASCRIPT_CORE: {
         STANDARD: /^(?:(global|eval)\s)?(.*?)@(.*?)(?::(\d+)(?::(\d+))?)?$/
     }
+};
+
+/**
+ * The frame markers that V8 writes directly after `at`.
+ *
+ * @remarks
+ * Both patterns anchor on the `at ` prefix instead of matching anywhere in the line,
+ * so a function or directory whose name merely contains `new` or `async` leaves the flag alone.
+ * `renewSession` and `node_modules/newrelic` used to set it.
+ *
+ * @since 6.0.0
+ */
+
+const V8_MARKERS = {
+    ASYNC: /(?:^|\s)at\s+async\s/,
+    CONSTRUCTOR: /(?:^|\s)at\s+(?:async\s+)?new\s/
 };
 
 /**
@@ -139,6 +155,42 @@ export function createDefaultFrame(source: string): StackFrameInterface {
 }
 
 /**
+ * Flags a frame as a constructor or an async call from its function name.
+ *
+ * @param frame - Frame to flag, **updated in-place**
+ * @param functionName - Function name the engine-specific parser pulled off the line, if any
+ *
+ * @remarks
+ * SpiderMonkey and JavaScriptCore write no dedicated marker for either kind of frame,
+ * so the function name is the only signal left to read.
+ * This function reads only the name, because scanning the whole line lets the file path decide
+ * the flag and marks every frame under a directory such as `node_modules/async-hooks` as async.
+ *
+ * V8 writes real `at new` and `at async` markers, so {@link parseV8StackLine} matches those
+ * instead of calling this function.
+ *
+ * @example
+ * ```ts
+ * const frame = createDefaultFrame('AsyncQueue@/app/q.js:1:1');
+ * applyNameMarkers(frame, 'AsyncQueue');
+ * frame.async; // true
+ * ```
+ *
+ * @see parseV8StackLine
+ * @see createDefaultFrame
+ *
+ * @since 6.0.0
+ */
+
+export function applyNameMarkers(frame: StackFrameInterface, functionName: string | undefined): void {
+    if (!functionName) return;
+
+    const name = functionName.toLowerCase();
+    if (name.includes('constructor')) frame.constructor = true;
+    if (name.includes('async')) frame.async = true;
+}
+
+/**
  * Safely parses a string value to an integer, handling undefined and null cases
  *
  * @param value - The string value to parse
@@ -189,8 +241,8 @@ export function parseV8StackLine(line: string): StackFrameInterface {
     const frame = createDefaultFrame(line);
 
     // Common flags that apply to all formats
-    if (line.toLowerCase().includes('new')) frame.constructor = true;
-    if (line.toLowerCase().includes('async')) frame.async = true;
+    if (V8_MARKERS.CONSTRUCTOR.test(line)) frame.constructor = true;
+    if (V8_MARKERS.ASYNC.test(line)) frame.async = true;
 
     // Try to match against each pattern
     const evalMatch = line.match(PATTERNS.V8.EVAL);
@@ -269,12 +321,7 @@ export function parseSpiderMonkeyStackLine(line: string): StackFrameInterface {
     if (evalMatch) {
         frame.eval = true;
         frame.functionName = evalMatch[1] ? evalMatch[1] : undefined;
-
-        if (line.toLowerCase().includes('constructor'))
-            frame.constructor = true;
-
-        if (line.toLowerCase().includes('async'))
-            frame.async = true;
+        applyNameMarkers(frame, frame.functionName);
 
         // Add eval origin information
         frame.evalOrigin = {
@@ -341,12 +388,7 @@ export function parseJavaScriptCoreStackLine(line: string): StackFrameInterface 
     if (match) {
         frame.functionName = match[2];
         frame.eval = (match[1] === 'eval' || match[3] === 'eval');
-
-        if (line.toLowerCase().includes('constructor'))
-            frame.constructor = true;
-
-        if (line.toLowerCase().includes('async'))
-            frame.async = true;
+        applyNameMarkers(frame, frame.functionName);
 
         if (match[3] === '[native code]') {
             frame.native = true;

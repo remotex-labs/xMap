@@ -565,6 +565,53 @@ describe('parseV8StackLine', () => {
     });
 });
 
+describe('frame marker detection', () => {
+    test('flags a V8 constructor frame from the `at new` marker', () => {
+        const frame = parseV8StackLine('at new UserSession (/app/session.ts:1:1)');
+
+        expect(frame.constructor).toBe(true);
+        expect(frame.async).toBe(false);
+    });
+
+    test('flags a V8 async frame from the `at async` marker', () => {
+        const frame = parseV8StackLine('at async loadAll (/app/load.ts:2:2)');
+
+        expect(frame.async).toBe(true);
+        expect(frame.constructor).toBe(false);
+    });
+
+    test('flags an async constructor frame as both', () => {
+        const frame = parseV8StackLine('at async new Pool (/app/pool.ts:3:3)');
+
+        expect(frame.async).toBe(true);
+        expect(frame.constructor).toBe(true);
+    });
+
+    test.each(
+        [ 'at renewSession (/app/session.ts:10:3)',        'constructor' ],
+        [ 'at loadAsyncThing (/app/load.ts:20:4)',         'async'       ],
+        [ 'at handler (/app/node_modules/newrelic/i.js:5:1)', 'path'     ]
+    )('does not flag %s from a substring elsewhere in the line', ([ line ]) => {
+        const frame = parseV8StackLine(line);
+
+        expect(frame.constructor).toBe(false);
+        expect(frame.async).toBe(false);
+    });
+
+    test('does not let the file path flag a SpiderMonkey frame', () => {
+        const frame = parseSpiderMonkeyStackLine('fn@/app/node_modules/async-hooks/i.js:1:1');
+
+        expect(frame.async).toBe(false);
+        expect(frame.constructor).toBe(false);
+    });
+
+    test('does not let the file path flag a JavaScriptCore frame', () => {
+        const frame = parseJavaScriptCoreStackLine('fn@/app/constructor-utils/i.js:1:1');
+
+        expect(frame.constructor).toBe(false);
+    });
+});
+
 describe('parseSpiderMonkeyStackLine', () => {
     describe('standard SpiderMonkey stack lines', () => {
         test('should parse stack line with function name and location', () => {
