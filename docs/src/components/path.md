@@ -104,3 +104,9 @@ basename('/home/user/documents/report.pdf', '.pdf'); // 'report'
 basename('C:\\Users\\Documents\\file.txt');        // 'file.txt'
 basename('/home/user/documents/');                 // 'documents'
 ```
+
+## See also
+
+- [Source Service](/services/source)
+- [Resolve Service](/services/resolve)
+- [Getting Started](/guide)

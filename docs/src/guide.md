@@ -65,19 +65,22 @@ try {
 
 `SourceService` loads a Source Map v3 payload and lets you query positions:
 
-- `getPositionByGenerated(line, column, bias?)`
+- `getPosition(line, column, bias?)`
 - `getPositionByOriginal(line, column, sourceFile, bias?)`
 - `getPositionWithCode(line, column, bias?, { linesBefore, linesAfter, ... }?)`
 
-See: `/sourceService`
+See: [Source Service](/services/source)
 
 ### Bias
 
-When an exact mapping is not found, `Bias` controls how lookups behave:
+`Bias` controls what a lookup does when the exact position holds no mapping:
 
-- `Bias.BOUND`: closest match
+- `Bias.BOUND`: the exact column, or a segment one column either side of it, and `null` for anything further
 - `Bias.LOWER_BOUND`: segment column less than or equal to the target
 - `Bias.UPPER_BOUND`: segment column greater than or equal to the target
+
+`BOUND` is the default. A stack frame column often lands further than a column from any mapping the bundler
+emitted, so pass `Bias.LOWER_BOUND` when resolving a stack.
 
 ## Components
 
@@ -94,7 +97,7 @@ console.log(parsed.message);
 console.log(parsed.stack[0]);
 ```
 
-See: `/parse`
+See: [Parse](/components/parse)
 
 ### Formatter
 
@@ -107,7 +110,7 @@ const formatted = formatCode('console.log("hi")\n', { startLine: 1, padding: 4 }
 console.log(formatted);
 ```
 
-See: `/formatter`
+See: [Formatter](/components/formatter)
 
 ### Highlighter
 
@@ -119,7 +122,7 @@ import { highlightCode } from '@remotex-labs/xmap/highlighter.component';
 console.log(highlightCode('const x: number = 123\n'));
 ```
 
-See: `/highlighter`
+See: [Highlighter](/components/highlighter)
 
 ## Optimizing Bundle Size
 
@@ -137,3 +140,10 @@ import { highlightCode } from '@remotex-labs/xmap/highlighter.component';
 - Discord: <https://discord.gg/psV9grS9th>
 - Issues: <https://github.com/remotex-labs/xMap/issues>
 - npm: <https://www.npmjs.com/package/@remotex-labs/xmap>
+
+## See also
+
+- [Release Notes](/release)
+- [Source Service](/services/source)
+- [Resolve Service](/services/resolve)
+- [Parse](/components/parse)

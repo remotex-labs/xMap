@@ -83,8 +83,13 @@ if (position) {
 }
 ```
 
-::: warning info
-:rocket: Support Bias [Go to Bias](#bias)
+All four coordinates on the result are 1-based. `line`/`column` are the original position the lookup resolved to;
+`generatedLine`/`generatedColumn` echo the generated position you asked about, so they match the numbers an engine
+reports in a stack frame even when the segment that answered the lookup sits a few columns away.
+
+::: info 🚀 Bias
+`getPosition` takes an optional `bias` that decides which segment wins when no mapping matches
+the column exactly. See [Bias](#bias).
 :::
 
 ### From Original Source
@@ -122,8 +127,8 @@ const posWithCode = sourceService.getPositionWithCode(3, 10, Bias.BOUND, {
 if (posWithCode) {
   console.log(`Code snippet: 
 ${posWithCode.code}`);
-  // Note: startLine/endLine are 0-based indices into the original source content.
-  console.log(`From line ${posWithCode.startLine + 1} to ${posWithCode.endLine + 1}`);
+  // startLine/endLine are 1-based line numbers, counted the same way as `line`.
+  console.log(`From line ${posWithCode.startLine} to ${posWithCode.endLine}`);
 }
 ```
 
@@ -212,7 +217,21 @@ enum Bias {
 
 ### `Bias.BOUND`
 
-`Bias.BOUND` is the default. It returns a result only on an exact match for the requested column.
+`Bias.BOUND` is the default. It is near-exact: it returns the segment sitting at the position you asked for, or
+one sitting a single column either side of it, and `null` for anything further away. A reported column often sits
+a column off the one the bundler emitted the segment at, and that single column of slack absorbs it without
+reaching for a neighbour further down the line.
+
+When both neighbours are one column away, the lower one answers.
+
+Reach for it when the position is one you expect the map to hold and a match further than a column away would be
+wrong to accept.
+
+::: warning ⚠️ Still not the bias for stack traces
+An engine reports the column of a call site, which is frequently more than a column from anything the bundler
+emitted a mapping for, so `BOUND` still resolves nothing for many frames. Pass `Bias.LOWER_BOUND` when resolving
+a stack.
+:::
 
 ```ts
 // Using default bias (BOUND)
@@ -220,6 +239,9 @@ const position = sourceService.getPosition(10, 15);
 
 // Explicitly specifying BOUND (same behavior as above)
 const position = sourceService.getPosition(10, 15, Bias.BOUND);
+
+// A segment at column 14 or 16 answers this too - one at column 13 does not
+const nearby = sourceService.getPosition(10, 15, Bias.BOUND);
 ```
 
 ### `Bias.LOWER_BOUND`
@@ -250,8 +272,8 @@ const position = sourceService.getPosition(10, 15, Bias.UPPER_BOUND);
 
 ### When to Use Different Bias Values
 
-- **Use (default) `Bias.BOUND`** when you need an exact mapping at the requested column (returns `null` otherwise)
-- **Use `Bias.LOWER_BOUND`** when debugging minified code and want to find what original source code generated a particular point in the output
+- **Use (default) `Bias.BOUND`** when the position should be one the map holds, and anything more than a column away should read as "unmapped"
+- **Use `Bias.LOWER_BOUND`** when resolving a stack frame, or when debugging minified code and you want to find what original source code generated a particular point in the output
 - **Use `Bias.UPPER_BOUND`** when you want to make sure you capture the mapping for code that might appear slightly after your target position
 
 ### Practical Example
@@ -288,9 +310,10 @@ Positions:         1           2
 ```
 
 - If you query for a position between 1 and 2:
-  - : Will return `null` if there is no exact match `Bias.BOUND`
-  - : Will return position 1 `Bias.LOWER_BOUND`
-  - : Will return position 2 `Bias.UPPER_BOUND`
+  - `Bias.BOUND`: returns position 1 or 2 when the query sits a single column from it, and `null` anywhere
+    further in between
+  - `Bias.LOWER_BOUND`: returns position 1
+  - `Bias.UPPER_BOUND`: returns position 2
 
 ## Examples
 
@@ -356,7 +379,8 @@ if (snippet) {
   // Highlight the code
   const highlightedCode = highlightCode(snippet.code);
   
-  // Format with line numbers
+  // Format with line numbers - formatCode counts the same 1-based way,
+  // so snippet.startLine goes straight through
   const formattedCode = formatCode(highlightedCode, {
     padding: 4,
     startLine: snippet.startLine
@@ -365,3 +389,9 @@ if (snippet) {
   console.log(formattedCode);
 }
 ```
+
+## See also
+
+- [Resolve Service](/services/resolve)
+- [Parse](/components/parse)
+- [Path](/components/path)
