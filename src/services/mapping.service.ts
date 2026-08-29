@@ -1,6 +1,5 @@
-
 /**
- * Import will remove at compile time
+ * Type-only imports erased during TypeScript compilation.
  */
 
 import type { SegmentInterface } from '@components/interfaces/segment-component.interface';
@@ -79,7 +78,7 @@ export class MappingService {
      * Segments can reference these names by index to indicate which identifier
      * in the original code corresponds to a position in the generated code.
      *
-     * Omit this field if no names need to be tracked, or provide an empty array.
+     * Omit this field if no names need to be tracked or provide an empty array.
      *
      * @example
      * ```ts
@@ -247,9 +246,19 @@ export class MappingService {
      * Uses binary search for O(log n) performance on sorted segment arrays.
      *
      * Bias behavior:
-     * - **`BOUND`**: Returns exact matches only
+     * - **`BOUND`**: Returns the segment at the target column, or one at `target - 1` or `target + 1`, and `null` for anything else
      * - **`LOWER_BOUND`**: Returns the largest segment ≤ target column
      * - **`UPPER_BOUND`**: Returns the smallest segment ≥ target column
+     *
+     * `BOUND` tolerates a single column of slack on either side of the target, since a reported
+     * column often sits a column away from the one the bundler emitted the segment at. It never
+     * reaches further: a segment two or more columns away is `null` under this bias. When both
+     * neighbours are one column away, the lower one answers.
+     *
+     * `null` comes back when the line holds no segments at all, when `BOUND` finds nothing within
+     * one column of the target, or when the requested side of a one-sided bias is empty. A
+     * generated column a bundler emitted no mapping for is common, so a caller resolving a stack
+     * frame wants `LOWER_BOUND` rather than the default.
      *
      * The line index is adjusted by the current {@link lineOffset} to support
      * merged source maps with shifted line numbers.
@@ -259,7 +268,7 @@ export class MappingService {
      * const service = new MappingService();
      * service.decode(mappings);
      * const segment = service.getSegment(1, 5);
-     * // Returns a segment at line 1, column 5, or null
+     * // Returns a segment at line 1, column 4, 5, or 6, or null
      * ```
      *
      * @example Finding nearest lower bound
@@ -281,24 +290,31 @@ export class MappingService {
 
         let low = 0;
         let high = segments.length - 1;
-        let closest: SegmentInterface | null = null;
+        let lower: SegmentInterface | null = null;
+        let upper: SegmentInterface | null = null;
 
         while (low <= high) {
             const mid = (low + high) >>> 1;
             const seg = segments[mid];
 
             if (seg.generatedColumn < generatedColumn) {
+                lower = seg;
                 low = mid + 1;
-                if (bias === Bias.LOWER_BOUND) closest = seg;
             } else if (seg.generatedColumn > generatedColumn) {
+                upper = seg;
                 high = mid - 1;
-                if (bias === Bias.UPPER_BOUND) closest = seg;
             } else {
                 return seg;
             }
         }
 
-        return closest;
+        if (bias === Bias.LOWER_BOUND) return lower;
+        if (bias === Bias.UPPER_BOUND) return upper;
+
+        if (lower?.generatedColumn === generatedColumn - 1) return lower;
+        if (upper?.generatedColumn === generatedColumn + 1) return upper;
+
+        return null;
     }
 
     /**
@@ -312,15 +328,17 @@ export class MappingService {
      * @returns The matching segment, or `null` if no suitable segment exists
      *
      * @remarks
-     * Performs exhaustive linear search across all segments to find matches
-     * by original position. For frequent lookups, consider building an index
-     * first using {@link buildOriginalPositionIndex}.
+     * Performs exhaustive linear search across all segments to find matches by original position,
+     * on every call.
+     * The service holds no index and never reads {@link buildOriginalPositionIndex}.
+     * For frequent lookups, build that index yourself and search its buckets
+     * instead of calling this method repeatedly.
      *
-     * Returns immediately on the exact column match. For bias modes, tracks the
-     * closest segment by computing column distance.
+     * Returns immediately on the exact column match. Under a one-sided bias, the search keeps
+     * the nearest segment on that side by column distance and returns it once the scan ends.
      *
      * Bias behavior:
-     * - **`BOUND`**: Returns exact matches only
+     * - **`BOUND`**: Returns the segment at the target column, and `null` for anything else
      * - **`LOWER_BOUND`**: Returns the closest segment with column ≤ target
      * - **`UPPER_BOUND`**: Returns the closest segment with column ≥ target
      *
@@ -340,7 +358,7 @@ export class MappingService {
      *
      * @see {@link Bias} for bias options
      * @see {@link getSegment} for generated position lookups
-     * @see {@link buildOriginalPositionIndex} for optimized repeated lookups
+     * @see {@link buildOriginalPositionIndex} to build a caller-owned index for repeated lookups
      *
      * @since 5.0.0
      */
@@ -360,16 +378,12 @@ export class MappingService {
                 const col = seg.column;
                 if (col === sourceColumn) return seg;
 
-                if (bias === Bias.LOWER_BOUND) {
-                    if (col < sourceColumn) {
-                        const dist = sourceColumn - col;
-                        if (dist < closestDist) { closestDist = dist; closest = seg; }
-                    }
-                } else if (bias === Bias.UPPER_BOUND) {
-                    if (col > sourceColumn) {
-                        const dist = col - sourceColumn;
-                        if (dist < closestDist) { closestDist = dist; closest = seg; }
-                    }
+                if (bias === Bias.LOWER_BOUND && col < sourceColumn) {
+                    const dist = sourceColumn - col;
+                    if (dist < closestDist) { closestDist = dist; closest = seg; }
+                } else if (bias === Bias.UPPER_BOUND && col > sourceColumn) {
+                    const dist = col - sourceColumn;
+                    if (dist < closestDist) { closestDist = dist; closest = seg; }
                 }
             }
         }
@@ -391,8 +405,10 @@ export class MappingService {
      * - **Keys**: Formatted as `"sourceIndex:line"` (e.g., `"0:1"`, `"2:15"`)
      * - **Values**: Arrays of {@link SegmentInterface} sorted by `column`
      *
-     * This is useful when performing many original position lookups, as it
-     * avoids the O(n) linear search of {@link getOriginalSegment}.
+     * This is useful when performing many original position lookups,
+     * since searching a bucket avoids the linear scan that {@link getOriginalSegment} performs.
+     * The caller owns the returned index, and the service keeps no reference to it,
+     * so no other method reads it or refreshes it - rebuild it after decoding more mappings.
      *
      * Null/empty lines are safely skipped during index construction.
      *
@@ -516,7 +532,9 @@ export class MappingService {
      * - Base64 VLQ characters: `A-Z`, `a-z`, `0-9`, `+`, `/`
      * - Separators: `,` (segments), `;` (lines)
      *
-     * Empty strings are considered invalid.
+     * An empty string is valid - it is what a Source Map v3 carries when it maps nothing.
+     * A segment-level defect such as an empty segment between two separators passes this
+     * alphabet check, and {@link decodeSegment} rejects it while decoding.
      *
      * @example Valid mapping string
      * ```ts
@@ -534,7 +552,7 @@ export class MappingService {
      */
 
     private validateSourceMappingString(raw: string): boolean {
-        return /^[a-zA-Z0-9+/,;]+$/.test(raw);
+        return /^[a-zA-Z0-9+/,;]*$/.test(raw);
     }
 
     /**
@@ -552,11 +570,16 @@ export class MappingService {
      * 1. Validates that input is an array
      * 2. Pre-computes combined line shift for performance
      * 3. Validates each segment using {@link validateSegment}
-     * 4. Applies name, source, and line offsets to all coordinates
+     * 4. Applies name and source offsets, and renumbers `generatedLine`
      * 5. Appends decoded segments to an internal lines array
      *
      * Null lines are preserved as-is. Each segment is validated before the offset
      * application to ensure data integrity.
+     *
+     * Each segment takes its `generatedLine` from the slot that its line lands in,
+     * rather than from the incoming value, since {@link getSegment} indexes by that slot.
+     * Copying the incoming value through leaves the field disagreeing with the position
+     * that the segment answers at, which is what appending a map built with a `lineOffset` did.
      *
      * Error messages include 1-based line numbers for easier debugging.
      *
@@ -603,7 +626,7 @@ export class MappingService {
                         ...seg,
                         nameIndex: typeof seg.nameIndex === 'number' ? seg.nameIndex + namesOffset : null,
                         sourceIndex: seg.sourceIndex + sourcesOffset,
-                        generatedLine: seg.generatedLine + totalLineShift
+                        generatedLine: totalLineShift + i + 1
                     };
                 }
                 this.lines.push(decodedSegments);
