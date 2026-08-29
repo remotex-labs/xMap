@@ -1,5 +1,5 @@
 /**
- * Import will remove at compile time
+ * Type-only imports erased during TypeScript compilation.
  */
 
 import type { ColorFunctionType } from '@components/interfaces/highlighter-component.interface';
@@ -202,12 +202,13 @@ export class CodeHighlighter {
      * @param color - The {@link ColorFunctionType} to apply to this segment
      *
      * @remarks
-     * This method creates a unique key for each segment based on its position and stores the segment information in a map.
-     * Each segment contains its position information, styling code,
-     * and reset code which will later be used during the highlighting process.
+     * This method builds a unique key for each segment from its position,
+     * and stores the segment information in a map.
+     * Each segment carries its position, its styling code, and the reset code
+     * that the highlighting process applies later.
      *
-     * If multiple segments are added with the same positions, the later additions will
-     * overwrite earlier ones due to the map's key-based storage.
+     * Adding two segments at the same positions overwrites the earlier one,
+     * because the map keys on the position pair.
      *
      * @example
      * ```ts
@@ -525,7 +526,7 @@ export class CodeHighlighter {
 
 export function highlightCode(code: string, schema: Partial<HighlightSchemeInterface> = {}): string {
     const sourceFile = ts.createSourceFile('temp.ts', code, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
-    const codeHighlighter = new CodeHighlighter(sourceFile, code, Object.assign(defaultScheme, schema));
+    const codeHighlighter = new CodeHighlighter(sourceFile, code, Object.assign({}, defaultScheme, schema));
 
     function walk(node: ts.Node): void {
         codeHighlighter.parseNode(node);
