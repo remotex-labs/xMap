@@ -1,5 +1,5 @@
 /**
- * Import will remove at compile time
+ * Type-only imports erased during TypeScript compilation.
  */
 
 import type { SourceMapInterface } from '@services/interfaces/source-service.interface';
@@ -272,7 +272,6 @@ describe('SourceService', () => {
 
             const service = new SourceService(sourceMap);
 
-            // resolve is mocked — just confirm it processed the source
             expect(service.sources[0]).toBeDefined();
             expect(typeof service.sources[0]).toBe('string');
         });
@@ -664,8 +663,8 @@ describe('SourceService', () => {
                 code: expect.any(String),
                 line: 2,
                 column: 5,
-                endLine: 5,
-                startLine: 0,
+                endLine: 6,
+                startLine: 1,
                 name: null,
                 source: 'src/x.spec.ts',
                 sourceRoot: '',
@@ -744,7 +743,7 @@ describe('SourceService', () => {
             const position = service.getPositionWithCode(1, 1, Bias.BOUND, { linesBefore: 100 });
 
             expect(position).not.toBeNull();
-            expect(position!.startLine).toBe(0);
+            expect(position!.startLine).toBe(1);
         });
 
         test('should clamp endLine to last line when linesAfter exceeds available lines', () => {
@@ -762,7 +761,7 @@ describe('SourceService', () => {
             const position = service.getPositionWithCode(1, 0, Bias.BOUND, { linesAfter: 100 });
 
             expect(position).not.toBeNull();
-            expect(position!.endLine).toBe(totalLines - 1);
+            expect(position!.endLine).toBe(totalLines);
         });
 
         test('should use default window of 3 before and 4 after when options not provided', () => {
@@ -779,9 +778,10 @@ describe('SourceService', () => {
             const position = service.getPositionWithCode(5, 0);
 
             expect(position).not.toBeNull();
-            // line 4 (0-indexed: 3), startLine = max(3 - 3, 0) = 0, endLine = min(3 + 4, last) = 6
-            expect(position!.startLine).toBe(0);
-            expect(position!.endLine).toBeLessThanOrEqual(6);
+            // line 4 (0-indexed: 3), start index max(3 - 3, 0) = 0, end index min(3 + 4, last) = 6
+            // both reported 1-based
+            expect(position!.startLine).toBe(1);
+            expect(position!.endLine).toBeLessThanOrEqual(7);
         });
 
         test('should forward custom bias argument to getSegment', () => {
@@ -940,7 +940,7 @@ describe('SourceService', () => {
             expect(position!.name).toBeNull();
         });
 
-        test('should match source using substring — full path also matches', () => {
+        test('should match source using substring - full path also matches', () => {
             const service = new SourceService(sourceMap);
             const spy = xJet.spyOn(service.mappings, 'getOriginalSegment').mockReturnValue(null);
 
@@ -971,6 +971,59 @@ describe('SourceService', () => {
             const result = SourceService.assign(service1);
 
             expect(result).not.toBe(service1);
+        });
+
+        test('should keep sourcesContent aligned when an input omits it', () => {
+            const withoutContent: SourceMapInterface = {
+                version: 3,
+                file: 'a.js',
+                names: [],
+                sources: [ 'a.ts', 'b.ts' ],
+                mappings: 'AAAA;ACAA'
+            };
+
+            const withContent: SourceMapInterface = {
+                version: 3,
+                file: 'b.js',
+                names: [],
+                sources: [ 'c.ts' ],
+                sourcesContent: [ '// this is c.ts' ],
+                mappings: 'AAAA'
+            };
+
+            const result = SourceService.assign(
+                new SourceService(withoutContent),
+                new SourceService(withContent)
+            );
+
+            expect(result.sources).toEqual([ 'a.ts', 'b.ts', 'c.ts' ]);
+            expect(result.sourcesContent).toHaveLength(result.sources.length);
+
+            // c.ts's content used to land on index 0 and be served as a.ts's source
+            expect(result.sourcesContent[0]).toBeUndefined();
+            expect(result.sourcesContent[1]).toBeUndefined();
+            expect(result.sourcesContent[2]).toBe('// this is c.ts');
+        });
+
+        test('should report the same generated line from a forward and a reverse lookup', () => {
+            const sourceMap: SourceMapInterface = {
+                version: 3,
+                file: 'a.js',
+                names: [],
+                sources: [ 'a.ts' ],
+                sourcesContent: [ 'l1\nl2\nl3' ],
+                mappings: 'AAAA;AACA;AACA'
+            };
+
+            // an input built with a line offset used to keep its old generatedLine after merging
+            const result = SourceService.assign(new SourceService(sourceMap, 10));
+
+            const forward = result.getPosition(1, 1);
+            const reverse = result.getPositionByOriginal(1, 1, 0);
+
+            expect(forward).not.toBeNull();
+            expect(reverse).not.toBeNull();
+            expect(reverse!.generatedLine).toBe(forward!.generatedLine);
         });
 
         test('should merge names, sources, and sourcesContent from multiple source maps', () => {
