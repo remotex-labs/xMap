@@ -1,5 +1,5 @@
 /**
- * Import will remove at compile time
+ * Type-only imports erased during TypeScript compilation.
  */
 
 import type { PositionWithCodeInterface } from '@services/interfaces/source-service.interface';
@@ -21,7 +21,11 @@ export type * from '@components/interfaces/formatter-component.interface';
  * @remarks
  * This function takes a code string and an options object to format the code snippet.
  * It applies padding to line numbers and can trigger custom actions for specific lines.
- * Options include padding (default 10), startLine (default 0), and custom actions for specific lines.
+ * Options include padding (default 10), startLine (default 1), and custom actions for specific lines.
+ *
+ * `startLine` is the 1-based number of the first line held in `code`,
+ * so the first rendered line carries the number `startLine`.
+ * `action.triggerLine` counts the same way.
  *
  * @example
  * ```ts
@@ -43,10 +47,10 @@ export type * from '@components/interfaces/formatter-component.interface';
 export function formatCode(code: string, options: FormatCodeInterface = {}): string {
     const lines = code.split('\n');
     const padding = options.padding ?? 10;
-    const startLine = options.startLine ?? 0;
+    const startLine = options.startLine ?? 1;
 
     return lines.map((lineContent, index) => {
-        const currentLineNumber = index + startLine + 1;
+        const currentLineNumber = index + startLine;
         const prefix = `${ currentLineNumber } | `;
         const string = `${ prefix.padStart(padding) }${ lineContent }`;
 
@@ -73,6 +77,13 @@ export function formatCode(code: string, options: FormatCodeInterface = {}): str
  * The sourcePosition object should contain code (string), line (number), column (number),
  * and optional startLine (number, defaults to 1).
  *
+ * `startLine` is the 1-based number of the first line held in `code`, matching `line`
+ * and the `startLine` that {@link PositionWithCodeInterface} carries.
+ * {@link formatCode} counts the same way, so this function passes the value straight through.
+ *
+ * `line` must fall inside the snippet and `column` must be at least `1`,
+ * because a caret outside the rendered lines would mark nothing.
+ *
  * @example
  * ```ts
  * const formattedErrorCode = formatErrorCode({
@@ -81,6 +92,7 @@ export function formatCode(code: string, options: FormatCodeInterface = {}): str
  *     column: 15,
  *     startLine: 1
  * });
+ * // renders the snippet numbered from line 1, with a caret under column 15 of line 2
  * ```
  *
  * @see formatCode - The underlying function used for basic code formatting
@@ -91,12 +103,12 @@ export function formatCode(code: string, options: FormatCodeInterface = {}): str
 export function formatErrorCode(
     sourcePosition: PositionWithCodeInterface | ErrorCodeType, ansiOption?: AnsiOptionInterface
 ): string {
-    const { code, line: errorLine, column: errorColumn, startLine } = sourcePosition;
+    const { code, line: errorLine, column: errorColumn } = sourcePosition;
+    const startLine = sourcePosition.startLine ?? 1;
+    const endLine = startLine + code.split('\n').length - 1;
 
-    // Validate line and column numbers
-    if (errorLine < startLine || errorColumn < 1) {
+    if (errorLine < startLine || errorLine > endLine || errorColumn < 1)
         throw new Error('Invalid line or column number.');
-    }
 
     return formatCode(code, {
         startLine,
@@ -104,7 +116,7 @@ export function formatErrorCode(
             triggerLine: errorLine,
             callback: (lineString, padding, line) => {
                 let pointer = '^';
-                let ansiPadding = padding - 1; // 1 size of the char we added
+                let ansiPadding = padding - 1;
                 let prefixPointer = '>';
 
                 if (ansiOption) {
@@ -113,8 +125,9 @@ export function formatErrorCode(
                     prefixPointer = ansiOption.color('>');
                 }
 
+                const content = lineString.slice(lineString.indexOf('|') + 1);
                 const errorMarker = ' | '.padStart(padding) + ' '.repeat(errorColumn - 1) + `${ pointer }`;
-                lineString = `${ prefixPointer } ${ line } |`.padStart(ansiPadding) + lineString.split('|')[1];
+                lineString = `${ prefixPointer } ${ line } |`.padStart(ansiPadding) + content;
 
                 return lineString + `\n${ errorMarker }`;
             }
