@@ -50,7 +50,7 @@ The `formatCode` function accepts an options object with the following propertie
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
 | `padding` | number | 10 | The amount of padding for line numbers |
-| `startLine` | number | 0 | A 0-based line offset (0 means the first rendered line is numbered 1) |
+| `startLine` | number | 1 | The 1-based number of the first line in `code` |
 | `action` | object | undefined | Custom action for specific lines |
 
 ### Custom Line Actions
@@ -94,7 +94,7 @@ greet('World');
 
 const formatted = formatCode(code, {
   padding: 5,
-  startLine: 0
+  startLine: 1
 });
 
 console.log(formatted);
@@ -126,7 +126,7 @@ greet('World');
 
 const formatted = formatCode(code, {
     padding: 8,
-    startLine: 0,
+    startLine: 1,
     action: {
         triggerLine: 3,
         callback: (lineString, padding, lineNumber) => {
@@ -157,8 +157,17 @@ The `formatErrorCode` function is specialized for highlighting errors in code sn
 It formats the code and adds a visual indicator (caret symbol `^`) pointing to the exact error location.
 
 In most cases you should not build `sourcePosition` manually. Prefer `SourceService.getPositionWithCode(...)`, which
-provides a `PositionWithCodeInterface` where `startLine`/`endLine` are 0-based indices into the original source content
-(and `line`/`column` are 1-based coordinates of the error).
+provides a `PositionWithCodeInterface`. Every line and column on it is 1-based: `startLine` and `endLine` are the
+numbers of the first and last line held in `code`, and `line`/`column` locate the error within it.
+
+::: info 📐 `startLine` is 1-based everywhere
+`formatCode` and `formatErrorCode` both take a **1-based** `startLine`, matching `line` and the value
+`getPositionWithCode` returns, so a snippet position can be passed to either unchanged.
+:::
+
+`line` must fall inside the snippet - between `startLine` and the last line `code` holds - and `column` must be
+at least `1`. Anything outside that throws `Invalid line or column number.` rather than rendering a frame with no
+caret in it.
 
 ### Basic Usage
 
@@ -169,8 +178,8 @@ const sourcePosition = {
     code: 'const x = 1;\nconst y = x.undefined;\n',
     line: 2,
     column: 13,
-    startLine: 0,
-    endLine: 2,
+    startLine: 1,
+    endLine: 3,
     name: null,
     source: '',
     sourceRoot: null,
@@ -208,8 +217,9 @@ The object allows: `ansiOption`
 
 - `color`: Function that applies color to the error indicator
 
-::: tip
-You can use `xterm.red` as the `color` function. @see [xAnsi](https://remotex-labs.github.io/xAnsi/)
+::: tip 🎨 Colors
+Any `@remotex-labs/xansi` style works as the `color` function - pass `xterm.red` straight in.
+See [xAnsi](https://remotex-labs.github.io/xAnsi/).
 :::
 
 ### Examples
@@ -228,8 +238,8 @@ const sourcePosition = {
 }`,
     line: 2,
     column: 13,
-    startLine: 0,
-    endLine: 5,
+    startLine: 1,
+    endLine: 6,
     name: null,
     source: '',
     sourceRoot: null,
@@ -269,8 +279,8 @@ const sourcePosition = {
 }`,
     line: 2,
     column: 13,
-    startLine: 0,
-    endLine: 5,
+    startLine: 1,
+    endLine: 6,
     name: null,
     source: '',
     sourceRoot: null,
@@ -337,3 +347,9 @@ if (errorPosition) {
     console.log(formattedError);
 }
 ```
+
+## See also
+
+- [Highlighter](/components/highlighter)
+- [Source Service](/services/source)
+- [Resolve Service](/services/resolve)

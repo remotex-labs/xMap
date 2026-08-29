@@ -35,6 +35,11 @@ The function returns the same code string but with ANSI color codes inserted to 
 
 You can customize the highlighting by providing a partial color scheme:
 
+::: tip 🎨 Colors
+Every field is a plain `(text: string) => string`, so any `@remotex-labs/xansi` style drops in
+as-is. See [xAnsi](https://remotex-labs.github.io/xAnsi/).
+:::
+
 ```ts
 import { xterm } from '@remotex-labs/xansi/xterm.component';
 import { highlightCode } from '@remotex-labs/xmap/highlighter.component';
@@ -133,6 +138,7 @@ console.log(highlighted);
 ### Example 3: Using xterm Colors
 
 ```ts
+import { xterm } from '@remotex-labs/xansi/xterm.component';
 
 const colorfulTheme = {
     keywordColor: xterm.magentaBright,
@@ -165,7 +171,7 @@ function sum(a: number, b: number): number {
 const highlightedCode = highlightCode(code);
 const formattedCode = formatCode(highlightedCode, {
     padding: 5,
-    startLine: 0
+    startLine: 1
 });
 
 console.log(formattedCode);
@@ -190,8 +196,8 @@ const sourcePosition = {
     code: highlightCode(code), // Highlight first
     line: 2,
     column: 13,
-    startLine: 0,
-    endLine: 0,
+    startLine: 1,
+    endLine: 7,
     name: null,
     source: '',
     sourceRoot: null,
@@ -281,3 +287,9 @@ walkNodes(sourceFile);
 const highlightedCode = highlighter.highlight();
 console.log(highlightedCode);
 ```
+
+## See also
+
+- [Formatter](/components/formatter)
+- [Parse](/components/parse)
+- [Getting Started](/guide)

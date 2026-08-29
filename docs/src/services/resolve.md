@@ -37,7 +37,7 @@ try {
   const parsed = parseErrorStack(e as Error);
 
   const resolved = resolveError(parsed, {
-    bias: Bias.BOUND,
+    bias: Bias.LOWER_BOUND,
     withNativeFrames: false
   });
 
@@ -96,13 +96,13 @@ Notes:
 
 `ResolveOptionsInterface`:
 
-| Option             | Type                                                   | Default      | Description                                                                      |
-|--------------------|--------------------------------------------------------|--------------|----------------------------------------------------------------------------------|
-| `bias`             | `Bias`                                                 | `Bias.BOUND` | Bias used when mapping generated positions to source positions.                  |
-| `linesBefore`      | `number`                                               | `3`          | Lines of context to include before the mapped source line.                       |
-| `linesAfter`       | `number`                                               | `4`          | Lines of context to include after the mapped source line.                        |
-| `withNativeFrames` | `boolean`                                              | `false`      | Include frames where `frame.native === true`.                                    |
-| `getSource`        | `(path: string) => SourceService \| null \| undefined` | `undefined`  | Provide a `SourceService` for a frame `fileName` so the resolver can add `code`. |
+| Option             | Type                                                   | Default      | Description                                                                                         |
+|--------------------|--------------------------------------------------------|--------------|-----------------------------------------------------------------------------------------------------|
+| `bias`             | `Bias`                                                 | `Bias.BOUND` | Maps a generated position to a source position. `BOUND` ±1 column; a stack wants `LOWER_BOUND`.     |
+| `linesBefore`      | `number`                                               | `3`          | Lines of context to include before the mapped source line.                                          |
+| `linesAfter`       | `number`                                               | `4`          | Lines of context to include after the mapped source line.                                           |
+| `withNativeFrames` | `boolean`                                              | `false`      | Include frames where `frame.native === true`.                                                       |
+| `getSource`        | `(path: string) => SourceService \| null \| undefined` | `undefined`  | Provide a `SourceService` for a frame `fileName` so the resolver can add `code`.                    |
 
 ## API Reference
 
@@ -133,7 +133,9 @@ stackEntry(
 Behavior:
 
 - Returns `undefined` when the frame is filtered out (for example, native frames when `withNativeFrames` is false).
-- Returns a formatted entry without `code` when source enrichment is not possible.
+- Returns a formatted entry without `code` when source enrichment is not possible - no `getSource`, no mapping for
+  the position, or a map that carries no `sourcesContent` for the resolved file. Filtering is the only thing that
+  drops a frame; a frame that cannot be enriched still comes back with its `format` line.
 
 ### stackSourceEntry
 
@@ -158,3 +160,9 @@ Notes:
 
 - When `frame.fileName` is an `http(s)` URL, `#L<line>` is appended.
 - The `[line:column]` suffix is only rendered when *both* `line` and `column` are present.
+
+## See also
+
+- [Source Service](/services/source)
+- [Parse](/components/parse)
+- [Formatter](/components/formatter)
