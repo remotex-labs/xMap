@@ -13,7 +13,7 @@ export default defineVersionedConfig({
     base: '/xMap/',
     description: 'A library with a sourcemap parser and TypeScript code formatter for the CLI',
     head: [
-        [ 'link', { rel: 'icon', type: 'image/png', href: '/xAnsi/xmap.png' }],
+        [ 'link', { rel: 'icon', type: 'image/png', href: '/xMap/logo.png' }],
         [ 'meta', { name: 'theme-color', content: '#ff7e17' }],
         [ 'script', { async: '', src: 'https://www.googletagmanager.com/gtag/js?id=G-1CQH1D9BMD' }],
         [
@@ -22,7 +22,7 @@ export default defineVersionedConfig({
         ]
     ],
     versionsConfig: {
-        current: 'v5.0.x',
+        current: 'v6.0.x',
         versionSwitcher: false
     },
     themeConfig: {
@@ -40,6 +40,8 @@ export default defineVersionedConfig({
 
         sidebar: {
             root: [
+                { text: 'Getting Started', link: '/guide' },
+                { text: 'Release Notes', link: '/release' },
                 {
                     text: 'Components',
                     collapsed: false,
@@ -62,6 +64,8 @@ export default defineVersionedConfig({
                 }
             ],
             'v4.0.x': [
+                { text: 'Getting Started', link: '/guide' },
+                { text: 'Release Notes', link: '/release' },
                 {
                     text: 'Components',
                     collapsed: false,
@@ -87,8 +91,8 @@ export default defineVersionedConfig({
         ],
 
         docFooter: {
-            prev: false,
-            next: false
+            prev: true,
+            next: true
         },
         footer: {
             message: 'Released under the Mozilla Public License 2.0',
