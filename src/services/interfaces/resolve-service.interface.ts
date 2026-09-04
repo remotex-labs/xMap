@@ -31,10 +31,10 @@ export interface ResolveOptionsInterface {
     /**
      * Number of lines of source code to include after the error line.
      *
-     * @defaultValue 3
+     * @defaultValue 4
      *
      * @remarks
-     * Defaults to 3 if not specified. Used when extracting code context
+     * Defaults to 4 if not specified. Used when extracting code context
      * from source files or snapshots.
      *
      * @since 5.0.0

@@ -74,15 +74,19 @@ export function formatStackLine(frame: StackFrameInterface): string {
  * @remarks
  * This function overwrites the frame's `line`, `column`, `fileName`, and where the position names one,
  * its `functionName`.
- * A position that carries a `sourceRoot` and a source outside `http` prefixes the frame's file name
- * with that root.
+ * A position naming a source outside `http` replaces the frame's file name with that source,
+ * prefixed by the position's `sourceRoot` where it carries one.
+ * A position whose source is an `http` or `https` URL leaves the generated file name in place,
+ * since a root never prefixes an absolute URL.
+ * A position naming no source leaves it in place as well.
  * {@link formatStackLine} renders the display line, and the extracted code context carries through
  * for a caller to render.
  *
  * @example
  * ```ts
  * const entry = stackSourceEntry(position, frame);
- * entry.format;    // 'at boom /app/index.ts [12:8]'
+ * entry.fileName;  // '/repo/src/index.ts' - the position's source under its root
+ * entry.format;    // 'at boom /repo/src/index.ts [12:8]'
  * entry.stratLine; // 9 - the first line the snippet holds
  * ```
  *
@@ -97,8 +101,8 @@ export function stackSourceEntry(position: PositionWithCodeInterface, frame: Sta
     frame.column = position.column;
     if (position.name) frame.functionName = position.name;
 
-    if (position.sourceRoot && !HTTP_URL_RE.test(position.source)) {
-        frame.fileName = `${ position.sourceRoot }${ position.source }`;
+    if (position.source && !HTTP_URL_RE.test(position.source)) {
+        frame.fileName = `${ position.sourceRoot ?? '' }${ position.source }`;
     }
 
     return {

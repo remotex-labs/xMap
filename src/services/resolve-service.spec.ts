@@ -121,14 +121,56 @@ describe('resolve.service', () => {
 
             expect(frame.line).toBe(3);
             expect(frame.column).toBe(7);
-            expect(frame.fileName).toBe('dist/bundle.js');
+            expect(frame.fileName).toBe('src/index.ts');
             expect(frame.functionName).toBe('resolvedFn');
 
-            expect(entry.format).toContain('darkGray(dist/bundle.js)');
+            expect(entry.format).toContain('darkGray(src/index.ts)');
             expect(entry.code).toBe('const x = 1;');
         });
 
-        test('prepends sourceRoot when present and frame is not http(s)', () => {
+        test('keeps the generated file name when the position names an http(s) source', () => {
+            const frame = makeFrame({ functionName: 'fn', fileName: '/dist/bundle.js', line: 1, column: 1 });
+            const position: PositionWithCodeInterface = {
+                name: null,
+                line: 1,
+                column: 2,
+                source: 'https://example.com/src/app.ts',
+                sourceRoot: '/repo',
+                sourceIndex: 0,
+                generatedLine: 1,
+                generatedColumn: 1,
+                code: 'x',
+                startLine: 1,
+                endLine: 1
+            };
+
+            const entry = stackSourceEntry(position, frame);
+            expect(entry.fileName).toBe('/dist/bundle.js');
+            expect(entry.format).toContain('darkGray(/dist/bundle.js)');
+        });
+
+        test('keeps the generated file name when the position names no source', () => {
+            const frame = makeFrame({ functionName: 'fn', fileName: '/dist/bundle.js', line: 1, column: 1 });
+            const position = {
+                name: null,
+                line: 1,
+                column: 2,
+                source: '',
+                sourceRoot: '/repo',
+                sourceIndex: 0,
+                generatedLine: 1,
+                generatedColumn: 1,
+                code: 'x',
+                startLine: 1,
+                endLine: 1
+            } satisfies PositionWithCodeInterface;
+
+            const entry = stackSourceEntry(position, frame);
+            expect(entry.fileName).toBe('/dist/bundle.js');
+            expect(entry.sourceRoot).toBe('/repo');
+        });
+
+        test('prepends sourceRoot to the position source when the source is not http(s)', () => {
             const frame = makeFrame({ functionName: 'fn', fileName: '/dist/bundle.js', line: 1, column: 1 });
             const position: PositionWithCodeInterface = {
                 name: null,
@@ -190,6 +232,8 @@ describe('resolve.service', () => {
             const entry = stackEntry(frame, options);
             expect(entry).toBeDefined();
             expect(entry?.code).toBe('mapped();');
+            expect(entry?.fileName).toBe('/src/app.ts');
+            expect(entry?.format).toContain('darkGray(/src/app.ts)');
 
             expect(getPositionWithCode).toHaveBeenCalledWith(
                 10,
