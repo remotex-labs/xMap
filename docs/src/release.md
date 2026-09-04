@@ -2,6 +2,18 @@
 
 What changed in each release of `@remotex-labs/xmap`.
 
+## v6.0.1
+
+- **Fixed**: A resolved stack frame names the original source, not the bundle. `stackSourceEntry` rewrote
+  `fileName` only where the source map declared a `sourceRoot`, so a map without one - what most bundlers emit -
+  left every frame pointing at the generated file. The mapped `source` now replaces `fileName` whenever the
+  position names one, still prefixed by `sourceRoot` where the map declares it. A `source` that is an `http(s)`
+  URL keeps the generated name, since a root never prefixes an absolute URL.
+  See [stackSourceEntry](services/resolve#stacksourceentry).
+- **Migration**: Code that rebuilt the original path from a resolved frame - joining `sourceRoot` onto `fileName`
+  by hand, or mapping the generated name back to a source - should read `fileName` as it comes. Joining a root
+  onto it again now doubles the prefix.
+
 ## v6.0.0
 
 Every line and column a position carries is now 1-based, and a position reports the generated location you

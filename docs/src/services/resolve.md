@@ -149,6 +149,9 @@ stackSourceEntry(
 Notes:
 
 - This function mutates `frame` (overwriting `line`, `column`, `fileName`, and optionally `functionName`) with resolved source info.
+- `fileName` becomes the position's `source`, prefixed by its `sourceRoot` where the position carries one.
+- A position whose `source` is an `http(s)` URL, or that names no source at all, leaves the generated `fileName` in
+  place - a root never prefixes an absolute URL.
 
 ### formatStackLine
 
